@@ -1,19 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
+import CadastroPessoa, { Person } from './CadastroPessoa'; 
 
-interface Person {
-  id: number;
-  name: string;
-  age: number;
-  email: string;
-}
-
-interface ListagemProps {
-  onGoToCadastro: (person?: Person) => void;
-}
-
-const PersonPage: React.FC<ListagemProps> = ({ onGoToCadastro }) => {
+const PersonPage: React.FC = () => {
   const [persons, setPersons] = useState<Person[]>([]);
+  
+  // Controle da Modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [personToEdit, setPersonToEdit] = useState<Person | null>(null);
 
   const fetchPersons = async () => {
     try {
@@ -35,11 +29,21 @@ const PersonPage: React.FC<ListagemProps> = ({ onGoToCadastro }) => {
     }
   };
 
+  const handleOpenNew = () => {
+    setPersonToEdit(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (person: Person) => {
+    setPersonToEdit(person);
+    setIsModalOpen(true);
+  };
+
   return (
     <div className="page-background">
       <div className="header-container">
         <h1 className="page-title">Pessoas</h1>
-        <button onClick={() => onGoToCadastro()} className="btn-add">+ Adicionar</button>
+        <button onClick={handleOpenNew} className="btn-add">+ Adicionar</button>
       </div>
 
       <div className="card-listagem">
@@ -61,7 +65,7 @@ const PersonPage: React.FC<ListagemProps> = ({ onGoToCadastro }) => {
                 <td className="custom-td">{person.age}</td>
                 <td className="custom-td">{person.email}</td>
                 <td className="custom-td">
-                  <button onClick={() => onGoToCadastro(person)} className="btn-edit">Editar</button>
+                  <button onClick={() => handleOpenEdit(person)} className="btn-edit">Editar</button>
                   <button onClick={() => handleDelete(person.id)} className="btn-delete">Excluir</button>
                 </td>
               </tr>
@@ -76,6 +80,15 @@ const PersonPage: React.FC<ListagemProps> = ({ onGoToCadastro }) => {
           </tbody>
         </table>
       </div>
+
+      {/* AQUI ESTÁ A MODAL */}
+      <CadastroPessoa 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onSuccess={fetchPersons} 
+        personToEdit={personToEdit} 
+      />
+
     </div>
   );
 };
