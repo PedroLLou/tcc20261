@@ -4,6 +4,9 @@
 
 ## Issue relacionada
 
+<!-- Se houver issue associada, use `Closes #N` para fechá-la no merge.
+     Se não houver, pode apagar esta seção ou escrever "N/A". -->
+
 Closes #
 
 ## Tipo de mudança

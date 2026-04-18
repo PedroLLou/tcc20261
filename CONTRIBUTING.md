@@ -7,18 +7,20 @@ Este projeto é um TCC em equipe. Antes de abrir seu primeiro PR, leia:
 
 ## Resumo em 30 segundos
 
-1. Crie uma **issue** (ou pegue uma existente) e anote o número `#N`.
+1. (Opcional) Crie ou pegue uma **issue** e anote o número `#N` — recomendado
+   para tarefas grandes; mudanças diretas podem ir sem issue.
 2. `git checkout main && git pull`.
-3. `git checkout -b tipo/N-descricao-curta` (ver tipos em `docs/workflow.md`).
+3. `git checkout -b tipo/descricao-curta` (ou `tipo/N-descricao-curta` se
+   houver issue). Ver tipos em `docs/workflow.md`.
 4. Commits no padrão Conventional Commits:
    `tipo(escopo): descrição curta`.
-5. `git push origin tipo/N-descricao-curta`.
+5. `git push origin tipo/descricao-curta`.
 6. Abra o PR para `main`, preencha o template, peça revisão.
-7. Após aprovação + CI verde: **Squash and merge**.
+7. Após aprovação (e CI verde, quando estiver ativo): **Squash and merge**.
 
 ## Setup do ambiente
 
-Ver [README.md](readme.md) para instruções de instalação e execução.
+Ver [readme.md](readme.md) para instruções de instalação e execução.
 
 ## Dúvidas
 
