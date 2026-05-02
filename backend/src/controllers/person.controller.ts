@@ -16,26 +16,26 @@ export class PersonController {
 
   @Post()
   async create(@Body() personDto: PersonDto) {
-    return this.personService.create(personDto);
+    return await this.personService.create(personDto);
   }
 
   @Get()
   async findAll() {
-    return this.personService.findAll();
+    return await this.personService.findAll();
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return this.personService.findOne(Number(id));
+    return await this.personService.findOne(Number(id));
   }
 
   @Put(':id')
   async update(@Param('id') id: string, @Body() personDto: PersonDto) {
-    return this.personService.update(Number(id), personDto);
+    return await this.personService.update(Number(id), personDto);
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    return this.personService.remove(Number(id));
+    return await this.personService.remove(Number(id));
   }
 }

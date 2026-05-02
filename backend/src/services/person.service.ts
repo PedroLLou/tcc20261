@@ -9,22 +9,22 @@ export class PersonService {
   async create(personDto: PersonDto) {
     const exists = await this.personRepository.existsByEmail(personDto.email);
     if (exists) throw new Error('Email already being used');
-    return this.personRepository.create(personDto);
+    return await this.personRepository.create(personDto);
   }
 
   async findAll() {
-    return this.personRepository.findAll();
+    return await this.personRepository.findAll();
   }
 
   async findOne(id: number) {
-    return this.personRepository.findOne(id);
+    return await this.personRepository.findOne(id);
   }
 
   async update(id: number, personDto: PersonDto) {
-    return this.personRepository.update(id, personDto);
+    return await this.personRepository.update(id, personDto);
   }
 
   async remove(id: number) {
-    return this.personRepository.remove(id);
+    return await this.personRepository.remove(id);
   }
 }
