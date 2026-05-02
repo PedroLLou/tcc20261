@@ -1,9 +1,7 @@
-
 import { Injectable } from '@nestjs/common';
 import { Person } from '@prisma/client';
 import { PersonDto } from '../dto/person.dto';
 import { PrismaService } from '../prisma.service';
-
 
 @Injectable()
 export class PersonRepository {
@@ -15,12 +13,14 @@ export class PersonRepository {
   }
 
   async create(dto: PersonDto): Promise<Person> {
-    return this.prisma.person.create({ data: {
-      name: dto.name,
-      age: dto.age,
-      email: dto.email,
-      password: dto.password
-    }});
+    return this.prisma.person.create({
+      data: {
+        name: dto.name,
+        age: dto.age,
+        email: dto.email,
+        password: dto.password,
+      },
+    });
   }
 
   async findAll(): Promise<Person[]> {
@@ -32,12 +32,15 @@ export class PersonRepository {
   }
 
   async update(id: number, dto: PersonDto): Promise<Person | null> {
-    return this.prisma.person.update({ where: { id }, data: {
-      name: dto.name,
-      age: dto.age,
-      email: dto.email,
-      password: dto.password
-    }});
+    return this.prisma.person.update({
+      where: { id },
+      data: {
+        name: dto.name,
+        age: dto.age,
+        email: dto.email,
+        password: dto.password,
+      },
+    });
   }
 
   async remove(id: number): Promise<boolean> {
