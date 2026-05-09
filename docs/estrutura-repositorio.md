@@ -12,7 +12,7 @@ Configuração e responde à dimensão de *controle de armazenamento* da discipl
 
 Monorepo com dois subprojetos independentes que se comunicam por API:
 
-- `backend/` — API REST em **NestJS + TypeScript**
+- `backend/` — API REST em **NestJS + TypeScript** com **Prisma** sobre Postgres
 - `frontend/` — SPA em **React (CRA) + TypeScript**
 
 Um único histórico, um único fluxo de PR, uma única configuração de Branch
@@ -26,8 +26,8 @@ independente.
 ```
 tcc20261/
 ├── .github/             ← templates, configurações e workflows do GitHub
-├── backend/             ← aplicação NestJS
-├── docs/                ← documentação técnica do projeto
+├── backend/             ← aplicação NestJS + Prisma
+├── docs/                ← documentação técnica e diagramas do projeto
 ├── frontend/            ← aplicação React
 ├── .gitignore           ← regras de exclusão do controle de versão
 ├── CONTRIBUTING.md      ← guia de entrada para contribuidores
@@ -37,19 +37,46 @@ tcc20261/
 Documentos de "porta de entrada" ficam visíveis na raiz; documentação
 detalhada em `docs/`; configurações da plataforma em `.github/`.
 
-### `.github/`
+### 2.1. Pasta `.github/`
+
+Contém artefatos reconhecidos automaticamente pelo GitHub:
 
 | Arquivo | Status | Função |
 |---|---|---|
-| `pull_request_template.md` | ✅ existe | Aplicado em todo novo PR |
+| `pull_request_template.md` | ✅ ativo | Aplicado em todo novo PR |
+| `workflows/lint.yml` | ✅ ativo | Pipeline de ESLint para backend e frontend |
+| `workflows/codeql.yml` | ✅ ativo | Análise de segurança CodeQL |
 | `ISSUE_TEMPLATE/` | 🔜 futuro | Templates de bug e feature |
 | `CODEOWNERS` | 🔜 futuro | Mapeia pastas a responsáveis |
-| `workflows/` | 🔜 futuro | Pipelines de CI/CD (frente do CI) |
 
-### `docs/`
+### 2.2. Pasta `docs/`
 
-Documentação técnica em Markdown — legível no GitHub, versionável, editável
-em qualquer ferramenta. Hoje contém `workflow.md` e este documento.
+Documentação técnica e diagramas do projeto. Mistura formatos:
+
+- **Markdown (`.md`)** para texto técnico legível no GitHub
+- **PNG** para visualização rápida de diagramas
+- **`.drawio`** como formato fonte editável dos diagramas
+- **`.docx` / `.pdf`** para descrições textuais elaboradas
+
+```
+docs/
+├── workflow.md
+├── estrutura-repositorio.md         ← este documento
+├── Descrição da Arquitetura/        ← descritivo da arquitetura (.docx + .pdf)
+├── Descrição dos Casos de Uso/      ← descritivo dos casos de uso (.docx)
+├── Diagrama de Atividades/          ← diagrama de atividades (.png)
+├── Diagrama de Caso de Uso/         ← diagrama de casos de uso (.png)
+├── Diagrama de Implantação/         ← diagrama de implantação (.drawio + .png)
+└── Diagrama de Pacotes/             ← diagrama de pacotes (.drawio + 2 .png)
+```
+
+Cada diagrama tem o **arquivo fonte** (`.drawio` ou `.docx`) e a **versão
+exportada** (`.png` ou `.pdf`) — assim o time pode visualizar rápido sem
+precisar abrir a ferramenta, e ainda assim manter a edição versionável.
+
+**Convenção de nomes**: pastas dentro de `docs/` usam capitalização e
+espaços para legibilidade (são leituras humanas, não caminhos de código).
+Já as pastas de código continuam em minúsculas com hífen.
 
 ---
 
@@ -60,16 +87,22 @@ em qualquer ferramenta. Hoje contém `workflow.md` e este documento.
 ```
 backend/
 ├── package.json, tsconfig.json, nest-cli.json, eslint.config.mjs
+├── prisma.config.ts          ← configuração do Prisma para o NestJS
 ├── README.md
+├── prisma/                   ← schema e migrations do banco
+│   ├── schema.prisma
+│   └── migrations/
 └── src/
-    ├── main.ts              ← ponto de entrada
-    ├── app.module.ts        ← módulo raiz
-    ├── controllers/         ← entrada da API
-    ├── dto/                 ← formato dos dados da API
-    ├── models/              ← entidades de domínio
-    ├── modules/             ← agrupadores de funcionalidade
-    ├── repositories/        ← acesso a dados
-    └── services/            ← lógica de negócio
+    ├── main.ts               ← ponto de entrada
+    ├── app.module.ts         ← módulo raiz
+    ├── prisma.module.ts      ← módulo Prisma (injeção de dependência)
+    ├── prisma.service.ts     ← serviço Prisma (acesso ao client)
+    ├── controllers/          ← entrada da API
+    ├── dto/                  ← formato dos dados da API
+    ├── models/               ← entidades de domínio
+    ├── modules/              ← agrupadores de funcionalidade
+    ├── repositories/         ← acesso a dados via Prisma
+    └── services/             ← lógica de negócio
 ```
 
 ### 3.2. Justificativa por pasta
@@ -80,29 +113,52 @@ Arquitetura em camadas decidida na reunião de 04/04/2026:
   ao service. Não contém regra de negócio.
 - **`services/`** — lógica de negócio, intermediário entre controller e
   repository. Testável isoladamente sem precisar de banco.
-- **`repositories/`** — acesso a dados (leituras, escritas, validações de
-  unicidade, relações). Isolar aqui permite trocar a tecnologia de
-  persistência sem refazer a camada de negócio.
+- **`repositories/`** — acesso a dados via Prisma. Concentra leituras,
+  escritas e validações de unicidade. Isolar aqui permite trocar a
+  tecnologia de persistência sem refazer a camada de negócio.
 - **`models/`** — entidades de domínio (`Person`, `Competence`).
 - **`dto/`** — *Data Transfer Objects*. Formato dos dados na API. Separar
   de `models` permite que a API evolua independentemente do domínio interno.
 - **`modules/`** — cada módulo NestJS agrupa controller + service +
   repository de uma entidade. Centraliza injeção de dependências.
 - **`app.module.ts`** — raiz da árvore de módulos.
+- **`prisma.module.ts` e `prisma.service.ts`** — módulo e serviço globais
+  que disponibilizam o Prisma Client via injeção de dependência. Vivem em
+  `src/` (não em pasta própria) por serem componentes infraestruturais
+  reutilizados por todos os repositories.
 
-### 3.3. Pastas futuras
+### 3.3. Pasta `prisma/`
+
+Convenção do Prisma — **deve ficar na raiz do subprojeto backend**:
+
+- **`schema.prisma`** — fonte única de verdade do modelo de dados. Define
+  entidades, relações, índices e provider do banco.
+- **`migrations/`** — pastas com timestamp, geradas automaticamente pelo
+  comando `prisma migrate dev`. Cada migration contém o SQL aplicado e é
+  versionada no repositório para garantir reprodutibilidade entre
+  ambientes.
+
+> **Particularidade**: o arquivo `migrations/migration_lock.toml` está
+> atualmente listado no `.gitignore`. Isso é incomum — a recomendação
+> oficial do Prisma é versionar este arquivo, pois ele garante que toda a
+> equipe usa o mesmo provider de banco. **A confirmar com o responsável
+> pela camada de banco** se foi decisão deliberada ou pode ser revertido.
+
+### 3.4. Pastas futuras no backend
 
 | Pasta | Quando | Convenção |
 |---|---|---|
-| `prisma/` | Integração Prisma | `schema.prisma` na raiz, `migrations/` dentro |
 | `test/` | Testes E2E | Padrão NestJS |
 | `src/**/*.spec.ts` | Testes unitários | Co-localizados com o código testado |
 
-### 3.4. Variáveis de ambiente
+### 3.5. Variáveis de ambiente
 
 `.env` real **nunca** é commitado. Um `.env.example` versionado lista os
 nomes das variáveis com valores em branco. Cada desenvolvedor cria seu
 `.env` local a partir do exemplo.
+
+A `DATABASE_URL` é a variável crítica do backend, usada pelo Prisma para
+conectar ao Postgres.
 
 ---
 
@@ -125,12 +181,12 @@ frontend/
 ### 4.2. Justificativa por pasta
 
 - **`pages/`** — cada arquivo é uma página completa, geralmente associada a
-  uma rota.
+  uma rota. Hoje contém `PersonPage.tsx` e `CadastroPessoa.tsx`.
 - **`services/`** — centraliza todas as chamadas HTTP ao backend.
   Componentes nunca chamam `fetch` direto. Facilita tratamento global de
   erros, autenticação, troca de URL entre ambientes.
 - **`hooks/`** — reutilização de lógica entre componentes (estado, side
-  effects, integração com APIs).
+  effects, integração com APIs). Hoje contém `useLoader.ts`.
 
 ### 4.3. Pastas futuras
 
@@ -145,7 +201,23 @@ bundler — não usar para imagens referenciadas em código.
 
 ---
 
-## 5. O que NÃO entra no repositório
+## 5. Integração contínua (CI)
+
+O repositório tem **GitHub Actions ativo** com dois workflows:
+
+- **`lint.yml`** — executa ESLint sobre backend e frontend a cada push e
+  PR. Detecta erros de estilo e padrões antes do merge.
+- **`codeql.yml`** — análise estática de segurança fornecida pelo próprio
+  GitHub. Detecta vulnerabilidades comuns no código TypeScript.
+
+**Status atual no ruleset do `main`**: a regra *Require status checks to
+pass* ainda **não está ativa**. Ou seja, hoje os checks rodam e mostram o
+resultado, mas não bloqueiam o merge. Será ativada quando os checks
+estiverem estáveis e o time tiver experiência com o pipeline.
+
+---
+
+## 6. O que NÃO entra no repositório
 
 ### Segredos
 `.env` reais, senhas, tokens, chaves privadas, certificados, backups com
@@ -172,7 +244,7 @@ normal de PR.
 
 ---
 
-## 6. Versionamento e baseline
+## 7. Versionamento e baseline
 
 Conventional Commits para mensagens (em `workflow.md`). Para marcar pontos
 relevantes, usamos **tags Git**:
@@ -197,25 +269,28 @@ anexar artefatos (slides, PDF do TCC).
 
 ---
 
-## 7. Artefatos não-código
+## 8. Artefatos não-código
 
-> **TODO** — Alinhar com a Profa. Adriana na próxima reunião 1:1.
+Estado atual do que já está decidido e do que falta alinhar:
 
-| Artefato | Possíveis localizações |
-|---|---|
-| Texto do TCC | Drive, Overleaf ou repo |
-| Slides de apresentação | Drive ou repo |
-| Atas e gravações | Drive |
-| Diagramas técnicos | Repo (em `docs/`, formato fonte) |
-| Dataset/seeds | Repo, em `backend/prisma/seeds/` (a confirmar) |
+| Artefato | Onde vive | Status |
+|---|---|---|
+| Diagramas técnicos | Repo (`docs/Diagrama de.../`) | ✅ definido |
+| Descrição da arquitetura | Repo (`docs/Descrição da Arquitetura/`) | ✅ definido |
+| Descrição dos casos de uso | Repo (`docs/Descrição dos Casos de Uso/`) | ✅ definido |
+| Texto do TCC | A definir | 🔜 TODO |
+| Slides de apresentação | A definir | 🔜 TODO |
+| Atas e gravações | Drive (presumido) | 🔜 confirmar |
+| Dataset/seeds de teste | Provavelmente `backend/prisma/seeds/` | 🔜 a criar |
 
-Recomendação inicial a validar: diagramas técnicos no repo (Mermaid,
-draw.io); TCC, slides e gravações no Drive da orientação; dataset/seeds no
-repo.
+> **TODO** — Alinhar com a Profa. Adriana, no 1:1 oferecido por ela, onde
+> ficam o texto do TCC, slides e gravações. A prática atual indica que
+> diagramas técnicos e descrições estão sendo armazenados no repositório,
+> o que valida a recomendação inicial.
 
 ---
 
-## 8. Auditoria de armazenamento
+## 9. Auditoria de armazenamento
 
 > **TODO** — Definir auditor e processo. Pendência da reunião de 25/04/2026.
 
@@ -226,6 +301,7 @@ Verificação periódica de que os artefatos seguem esta política:
 - `.gitignore` continua cobrindo tudo
 - Pastas novas têm justificativa documentada
 - Lockfiles versionados e atualizados
+- Diagramas têm formato fonte versionado (não só PNG)
 
 **Princípio**: a auditoria não pode ser feita pelo responsável pela GCS
 (segregação de responsabilidades — Prof. Juliano, 21/03/2026). Auditor
@@ -235,7 +311,7 @@ deve ser outro integrante.
 
 ---
 
-## 9. Mudanças nesta estrutura
+## 10. Mudanças nesta estrutura
 
 Estrutura não é fixa, evolui com o projeto.
 
@@ -249,7 +325,7 @@ Remoção exige decidir o destino do conteúdo.
 
 ---
 
-## 10. Referências
+## 11. Referências
 
 - Reunião 28/03/2026 — definição inicial do `src/`
 - Reunião 04/04/2026 — apresentação da arquitetura por Frederick
