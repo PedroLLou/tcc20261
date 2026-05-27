@@ -6,4 +6,10 @@ export class PersonDto {
 
   @ApiProperty()
   age!: number;
+
+  @ApiProperty()
+  email!: string;
+
+  @ApiProperty()
+  password!: string;
 }

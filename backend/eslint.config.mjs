@@ -10,6 +10,10 @@ export default tseslint.config(
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
+  {
+    files: ['**/*.js'],
+    ...tseslint.configs.disableTypeChecked,
+  },
   eslintPluginPrettierRecommended,
   {
     languageOptions: {
@@ -29,7 +33,12 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',
       '@typescript-eslint/no-unsafe-argument': 'warn',
-      "prettier/prettier": ["error", { endOfLine: "auto" }],
+      'prettier/prettier': ['error', { endOfLine: 'auto' }],
+
+      'complexity': ['error', 10],
+      'max-depth': ['error', 3],
+      'max-lines-per-function': ['warn', { max: 50, skipBlankLines: true, skipComments: true }],
+      'max-params': ['warn', 5],
     },
   },
 );

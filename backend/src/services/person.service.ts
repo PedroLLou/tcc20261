@@ -7,8 +7,24 @@ export class PersonService {
   constructor(private readonly personRepository: PersonRepository) {}
 
   async create(personDto: PersonDto) {
-    const exists = await this.personRepository.existsByName(personDto.name);
-    if (exists) throw new Error('Person already exists');
-    return this.personRepository.create(personDto);
+    const exists = await this.personRepository.existsByEmail(personDto.email);
+    if (exists) throw new Error('Email already being used');
+    return await this.personRepository.create(personDto);
+  }
+
+  async findAll() {
+    return await this.personRepository.findAll();
+  }
+
+  async findOne(id: number) {
+    return await this.personRepository.findOne(id);
+  }
+
+  async update(id: number, personDto: PersonDto) {
+    return await this.personRepository.update(id, personDto);
+  }
+
+  async remove(id: number) {
+    return await this.personRepository.remove(id);
   }
 }

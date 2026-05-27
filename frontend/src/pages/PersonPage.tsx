@@ -1,44 +1,94 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../services/api';
+import CadastroPessoa, { Person } from './CadastroPessoa'; 
 
 const PersonPage: React.FC = () => {
-  const [name, setName] = useState('');
-  const [age, setAge] = useState('');
-  const [message, setMessage] = useState('');
+  const [persons, setPersons] = useState<Person[]>([]);
+  
+  // Controle da Modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [personToEdit, setPersonToEdit] = useState<Person | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const fetchPersons = async () => {
     try {
-      await api.post('/persons', { name, age: Number(age) });
-      setMessage('Person created successfully!');
-      setName('');
-      setAge('');
-    } catch (err: any) {
-      setMessage(err.response?.data?.message || 'Error creating person');
+      const response = await api.get('/persons');
+      setPersons(response.data);
+    } catch (err) {
+      console.error('Erro ao buscar', err);
     }
   };
 
+  useEffect(() => {
+    fetchPersons();
+  }, []);
+
+  const handleDelete = async (id: number) => {
+    if(window.confirm('Excluir registro?')) {
+      await api.delete(`/persons/${id}`);
+      fetchPersons();
+    }
+  };
+
+  const handleOpenNew = () => {
+    setPersonToEdit(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (person: Person) => {
+    setPersonToEdit(person);
+    setIsModalOpen(true);
+  };
+
   return (
-    <div>
-      <h1>Create Person</h1>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          placeholder="Name"
-          required
-        />
-        <input
-          type="number"
-          value={age}
-          onChange={e => setAge(e.target.value)}
-          placeholder="Age"
-          required
-        />
-        <button type="submit">Save</button>
-      </form>
-      {message && <p>{message}</p>}
+    <div className="page-background">
+      <div className="header-container">
+        <h1 className="page-title">Pessoas</h1>
+        <button onClick={handleOpenNew} className="btn-add">+ Adicionar</button>
+      </div>
+
+      <div className="card-listagem">
+        <table className="custom-table">
+          <thead>
+            <tr>
+              <th className="custom-th">ID</th>
+              <th className="custom-th">Nome</th>
+              <th className="custom-th">Idade</th>
+              <th className="custom-th">E-mail</th>
+              <th className="custom-th">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {persons.map(person => (
+              <tr key={person.id} className="custom-tr">
+                <td className="custom-td">{person.id}</td>
+                <td className="custom-td">{person.name}</td>
+                <td className="custom-td">{person.age}</td>
+                <td className="custom-td">{person.email}</td>
+                <td className="custom-td">
+                  <button onClick={() => handleOpenEdit(person)} className="btn-edit">Editar</button>
+                  <button onClick={() => handleDelete(person.id)} className="btn-delete">Excluir</button>
+                </td>
+              </tr>
+            ))}
+            {persons.length === 0 && (
+              <tr>
+                <td colSpan={5} className="custom-td" style={{ textAlign: 'center', color: '#999' }}>
+                  Nenhuma pessoa cadastrada.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* AQUI ESTÁ A MODAL */}
+      <CadastroPessoa 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onSuccess={fetchPersons} 
+        personToEdit={personToEdit} 
+      />
+
     </div>
   );
 };

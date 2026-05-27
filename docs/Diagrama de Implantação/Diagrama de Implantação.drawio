@@ -1,0 +1,65 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Página-1" id="8dAQfVCxYLWGDwdfzaq0">
+    <mxGraphModel dx="1414" dy="751" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="none" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="zzaWZsHfxLK6XS6ww7sT-5" parent="1" style="verticalAlign=top;align=left;spacingTop=8;spacingLeft=2;spacingRight=12;shape=cube;size=10;direction=south;fontStyle=4;html=1;whiteSpace=wrap;" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;Diagrama de Implantação&amp;nbsp;&lt;/font&gt;&lt;span style=&quot;font-size: 16px;&quot;&gt;do Sistema de Gerenciamento de Competências&lt;/span&gt;" vertex="1">
+          <mxGeometry height="740" width="750" x="40" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="vO_IaffVO0eNkCUJJqYp-12" parent="1" style="html=1;whiteSpace=wrap;" value="" vertex="1">
+          <mxGeometry height="420" width="690" x="69" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="vO_IaffVO0eNkCUJJqYp-13" connectable="0" parent="1" style="group" value="" vertex="1">
+          <mxGeometry height="120" width="180" x="109" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="vO_IaffVO0eNkCUJJqYp-4" parent="vO_IaffVO0eNkCUJJqYp-13" style="verticalAlign=top;align=left;spacingTop=8;spacingLeft=2;spacingRight=12;shape=cube;size=10;direction=south;fontStyle=4;html=1;whiteSpace=wrap;fontSize=18;" value="Web Server" vertex="1">
+          <mxGeometry height="120" width="180" as="geometry" />
+        </mxCell>
+        <mxCell id="vO_IaffVO0eNkCUJJqYp-2" parent="vO_IaffVO0eNkCUJJqYp-13" style="shape=module;align=left;spacingLeft=20;align=center;verticalAlign=top;whiteSpace=wrap;html=1;fontSize=16;" value="Frontend&lt;div&gt;(Build React)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="50" width="150" x="10" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="vO_IaffVO0eNkCUJJqYp-14" connectable="0" parent="1" style="group" value="" vertex="1">
+          <mxGeometry height="120" width="200" x="519" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="zzaWZsHfxLK6XS6ww7sT-4" edge="1" parent="vO_IaffVO0eNkCUJJqYp-14" source="vO_IaffVO0eNkCUJJqYp-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="100" y="-130" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="vO_IaffVO0eNkCUJJqYp-1" parent="vO_IaffVO0eNkCUJJqYp-14" style="verticalAlign=top;align=left;spacingTop=8;spacingLeft=2;spacingRight=12;shape=cube;size=10;direction=south;fontStyle=4;html=1;whiteSpace=wrap;fontSize=18;" value="App Server" vertex="1">
+          <mxGeometry height="120" width="200" as="geometry" />
+        </mxCell>
+        <mxCell id="vO_IaffVO0eNkCUJJqYp-6" parent="vO_IaffVO0eNkCUJJqYp-14" style="shape=module;align=left;spacingLeft=20;align=center;verticalAlign=top;whiteSpace=wrap;html=1;fontSize=16;" value="Backend&lt;div&gt;(Aplicação NestJS)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="50" width="166.66666666666666" x="11.111111111111112" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="vO_IaffVO0eNkCUJJqYp-15" connectable="0" parent="1" style="group" value="" vertex="1">
+          <mxGeometry height="120" width="210" x="514" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="vO_IaffVO0eNkCUJJqYp-3" parent="vO_IaffVO0eNkCUJJqYp-15" style="verticalAlign=top;align=left;spacingTop=8;spacingLeft=2;spacingRight=12;shape=cube;size=10;direction=south;fontStyle=4;html=1;whiteSpace=wrap;fontSize=18;" value="DB Server" vertex="1">
+          <mxGeometry height="120" width="210" as="geometry" />
+        </mxCell>
+        <mxCell id="vO_IaffVO0eNkCUJJqYp-7" parent="vO_IaffVO0eNkCUJJqYp-15" style="shape=module;align=left;spacingLeft=20;align=center;verticalAlign=top;whiteSpace=wrap;html=1;fontSize=16;" value="&lt;div&gt;Banco&lt;/div&gt;(PostgreSQL)" vertex="1">
+          <mxGeometry height="50" width="135" x="37.5" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="vO_IaffVO0eNkCUJJqYp-16" connectable="0" parent="1" style="group" value="" vertex="1">
+          <mxGeometry height="120" width="180" x="109" y="650" as="geometry" />
+        </mxCell>
+        <mxCell id="zzaWZsHfxLK6XS6ww7sT-2" edge="1" parent="vO_IaffVO0eNkCUJJqYp-16" source="vO_IaffVO0eNkCUJJqYp-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;shape=wire;dashed=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="90" y="-160" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="vO_IaffVO0eNkCUJJqYp-5" parent="vO_IaffVO0eNkCUJJqYp-16" style="verticalAlign=top;align=left;spacingTop=8;spacingLeft=2;spacingRight=12;shape=cube;size=10;direction=south;fontStyle=4;html=1;whiteSpace=wrap;fontSize=18;" value="User Device" vertex="1">
+          <mxGeometry height="120" width="180" as="geometry" />
+        </mxCell>
+        <mxCell id="vO_IaffVO0eNkCUJJqYp-8" parent="vO_IaffVO0eNkCUJJqYp-16" style="shape=module;align=left;spacingLeft=20;align=center;verticalAlign=top;whiteSpace=wrap;html=1;fontSize=16;" value="Browser&lt;div&gt;(Chrome, Edge, Brave)&amp;nbsp;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="68" width="150" x="11" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="zzaWZsHfxLK6XS6ww7sT-3" edge="1" parent="1" source="vO_IaffVO0eNkCUJJqYp-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;" target="vO_IaffVO0eNkCUJJqYp-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
