@@ -1,10 +1,35 @@
 import React from 'react';
-import './index.css'; 
-import PersonPage from './pages/PersonPage';
+import './index.css';
+import { AuthProvider, useAuth } from './hooks/useAuth';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+
+const AppContent: React.FC = () => {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        fontSize: '18px',
+        color: '#667eea',
+      }}>
+        Carregando...
+      </div>
+    );
+  }
+
+  return isAuthenticated ? <Dashboard /> : <Login />;
+};
 
 function App() {
   return (
-   <PersonPage />
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 
