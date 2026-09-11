@@ -1,8 +1,19 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import type { User } from '@prisma/client';
 import { PrismaService } from '../prisma.service';
 import { LoginDto, RegisterDto, AuthResponseDto } from '../dto/auth.dto';
+
+interface JwtPayload {
+  sub: number;
+  email: string;
+  role: string;
+}
 
 @Injectable()
 export class AuthService {
@@ -33,7 +44,7 @@ export class AuthService {
         age,
         email,
         password: hashedPassword,
-        role: 'TEAM_MEMBER', // Padrão: membro de equipe
+        role: 'TEAM_MEMBER',
       },
     });
 
@@ -54,6 +65,7 @@ export class AuthService {
 
     // Verificar senha
     const isPasswordValid = await bcrypt.compare(password, user.password);
+
     if (!isPasswordValid) {
       throw new UnauthorizedException('Credenciais inválidas');
     }
@@ -61,7 +73,7 @@ export class AuthService {
     return this.generateAuthResponse(user);
   }
 
-  async validateToken(payload: any) {
+  async validateToken(payload: JwtPayload): Promise<User> {
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
     });
@@ -73,8 +85,13 @@ export class AuthService {
     return user;
   }
 
-  private generateAuthResponse(user: any): AuthResponseDto {
-    const payload = { sub: user.id, email: user.email, role: user.role };
+  private generateAuthResponse(user: User): AuthResponseDto {
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    };
+
     const access_token = this.jwtService.sign(payload);
 
     return {

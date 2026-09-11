@@ -16,6 +16,7 @@ const Login: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -31,11 +32,39 @@ const Login: React.FC = () => {
       if (isLogin) {
         await login(formData.email, formData.password);
       } else {
-        await register(formData.name, Number(formData.age), formData.email, formData.password);
+        await register(
+          formData.name,
+          Number(formData.age),
+          formData.email,
+          formData.password,
+        );
       }
     } catch (err: unknown) {
-      const error = err as any;
-      setError(error.response?.data?.message || 'Erro na autenticação');
+      if (
+        err &&
+        typeof err === 'object' &&
+        'response' in err
+      ) {
+        const response = (
+          err as {
+            response?: {
+              data?: {
+                message?: string | string[];
+              };
+            };
+          }
+        ).response;
+
+        const message = response?.data?.message;
+
+        if (Array.isArray(message)) {
+          setError(message.join(', '));
+        } else {
+          setError(message ?? 'Erro na autenticação');
+        }
+      } else {
+        setError('Erro na autenticação');
+      }
     } finally {
       setLoading(false);
     }
@@ -62,6 +91,7 @@ const Login: React.FC = () => {
                   required={!isLogin}
                 />
               </div>
+
               <div className="form-group">
                 <label>Idade</label>
                 <input
@@ -109,12 +139,18 @@ const Login: React.FC = () => {
 
         <div className="toggle-auth">
           {isLogin ? 'Novo usuário? ' : 'Já tem conta? '}
+
           <button
             type="button"
             onClick={() => {
               setIsLogin(!isLogin);
               setError('');
-              setFormData({ email: '', password: '', name: '', age: '' });
+              setFormData({
+                email: '',
+                password: '',
+                name: '',
+                age: '',
+              });
             }}
             className="toggle-button"
           >

@@ -21,7 +21,8 @@ export interface RegisterRequest {
 }
 
 class AuthService {
-  private api: any;
+  private api: ReturnType<typeof axios.create>;
+
   private readonly TOKEN_KEY = 'auth_token';
   private readonly USER_KEY = 'auth_user';
 
@@ -31,8 +32,9 @@ class AuthService {
     });
   }
 
-  setToken(token: string) {
+  setToken(token: string): void {
     localStorage.setItem(this.TOKEN_KEY, token);
+
     this.api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   }
 
@@ -40,13 +42,23 @@ class AuthService {
     return localStorage.getItem(this.TOKEN_KEY);
   }
 
-  setUser(user: User) {
+  setUser(user: User): void {
     localStorage.setItem(this.USER_KEY, JSON.stringify(user));
   }
 
   getUser(): User | null {
     const user = localStorage.getItem(this.USER_KEY);
-    return user ? JSON.parse(user) : null;
+
+    if (!user) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(user) as User;
+    } catch {
+      localStorage.removeItem(this.USER_KEY);
+      return null;
+    }
   }
 
   isAuthenticated(): boolean {
@@ -54,34 +66,43 @@ class AuthService {
   }
 
   async login(credentials: LoginRequest): Promise<User> {
-    const response = await this.api.post('/api/v1/auth/login', credentials);
+    const response = await this.api.post<User>(
+      '/api/v1/auth/login',
+      credentials,
+    );
+
     const user = response.data;
-    
+
     this.setToken(user.access_token);
     this.setUser(user);
-    
+
     return user;
   }
 
   async register(data: RegisterRequest): Promise<User> {
-    const response = await this.api.post('/api/v1/auth/register', data);
+    const response = await this.api.post<User>(
+      '/api/v1/auth/register',
+      data,
+    );
+
     const user = response.data;
-    
+
     this.setToken(user.access_token);
     this.setUser(user);
-    
+
     return user;
   }
 
-  logout() {
+  logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
+
     delete this.api.defaults.headers.common['Authorization'];
   }
 
-  // Inicializar token ao carregar a aplicação
-  initializeAuth() {
+  initializeAuth(): void {
     const token = this.getToken();
+
     if (token) {
       this.api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     }
