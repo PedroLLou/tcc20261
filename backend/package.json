@@ -22,12 +22,12 @@
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
-    "@nestjs/core": "^12.0.1",
-    "@nestjs/jwt": "^12.0.1",
-    "@nestjs/passport": "^12.0.0",
-    "@nestjs/swagger": "^12.0.1",
-    "@prisma/adapter-pg": "^7.7.0",
-    "@prisma/client": "^7.8.0",
+    "@nestjs/core": "^11.0.1",
+    "@nestjs/jwt": "^11.0.0",
+    "@nestjs/passport": "^11.0.0",
+    "@nestjs/swagger": "^11.0.0",
+    "@prisma/adapter-pg": "^6.12.0",
+    "@prisma/client": "^6.12.0",
     "@types/bcrypt": "^6.0.0",
     "bcrypt": "^6.0.0",
     "passport": "^0.7.0",
@@ -42,7 +42,7 @@
     "@eslint/js": "^9.18.0",
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
-    "@nestjs/testing": "^12.0.1",
+    "@nestjs/testing": "^11.0.1",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.0",
@@ -63,6 +63,9 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
+  },
+  "overrides": {
+    "deepmerge-ts": "^8.0.0"
   },
   "jest": {
     "moduleFileExtensions": [
