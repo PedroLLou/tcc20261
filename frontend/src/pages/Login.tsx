@@ -71,95 +71,99 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <h1 className="login-title">
-          {isLogin ? 'Login' : 'Cadastro'}
-        </h1>
+  <div className="login-container">
+    <div className="login-card">
+      <h1 className="login-title">
+        {isLogin ? 'Login' : 'Cadastro'}
+      </h1>
 
-        <form onSubmit={handleSubmit} className="login-form">
-          {!isLogin && (
-            <>
-              <div className="form-group">
-                <label>Nome Completo</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="Seu nome completo"
-                  required={!isLogin}
-                />
-              </div>
+      <form onSubmit={handleSubmit} className="login-form">
+        {!isLogin && (
+          <>
+            <div className="form-group">
+              <label htmlFor="name">Nome Completo</label>
+              <input
+                id="name"
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Seu nome completo"
+                required={!isLogin}
+              />
+            </div>
 
-              <div className="form-group">
-                <label>Idade</label>
-                <input
-                  type="number"
-                  name="age"
-                  value={formData.age}
-                  onChange={handleChange}
-                  placeholder="Sua idade"
-                  required={!isLogin}
-                />
-              </div>
-            </>
-          )}
+            <div className="form-group">
+              <label htmlFor="age">Idade</label>
+              <input
+                id="age"
+                type="number"
+                name="age"
+                value={formData.age}
+                onChange={handleChange}
+                placeholder="Sua idade"
+                required={!isLogin}
+              />
+            </div>
+          </>
+        )}
 
-          <div className="form-group">
-            <label>Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="seu@email.com"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Senha</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Sua senha"
-              required
-            />
-          </div>
-
-          {error && <div className="error-message">{error}</div>}
-
-          <button type="submit" className="submit-button" disabled={loading}>
-            {loading ? 'Carregando...' : isLogin ? 'Entrar' : 'Cadastrar'}
-          </button>
-        </form>
-
-        <div className="toggle-auth">
-          {isLogin ? 'Novo usuário? ' : 'Já tem conta? '}
-
-          <button
-            type="button"
-            onClick={() => {
-              setIsLogin(!isLogin);
-              setError('');
-              setFormData({
-                email: '',
-                password: '',
-                name: '',
-                age: '',
-              });
-            }}
-            className="toggle-button"
-          >
-            {isLogin ? 'Cadastre-se' : 'Faça login'}
-          </button>
+        <div className="form-group">
+          <label htmlFor="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="seu@email.com"
+            required
+          />
         </div>
+
+        <div className="form-group">
+          <label htmlFor="password">Senha</label>
+          <input
+            id="password"
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            placeholder="Sua senha"
+            required
+          />
+        </div>
+
+        {error && <div className="error-message">{error}</div>}
+
+        <button type="submit" className="submit-button" disabled={loading}>
+          {loading ? 'Carregando...' : isLogin ? 'Entrar' : 'Cadastrar'}
+        </button>
+      </form>
+
+      <div className="toggle-auth">
+        {isLogin ? 'Novo usuário? ' : 'Já tem conta? '}
+
+        <button
+          type="button"
+          onClick={() => {
+            setIsLogin(!isLogin);
+            setError('');
+            setFormData({
+              email: '',
+              password: '',
+              name: '',
+              age: '',
+            });
+          }}
+          className="toggle-button"
+        >
+          {isLogin ? 'Cadastre-se' : 'Faça login'}
+        </button>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default Login;
