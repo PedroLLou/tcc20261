@@ -3,14 +3,23 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql" 
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-model Person {
+enum UserRole {
+  ADMIN_LEADER    // Líder de equipe
+  TEAM_MEMBER     // Membro da equipe
+  ADMIN_RH        // Admin de RH da empresa
+}
+
+model User {
   id        Int      @id @default(autoincrement())
   name      String
   age       Int
   email     String   @unique
   password  String
+  role      UserRole @default(TEAM_MEMBER)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
