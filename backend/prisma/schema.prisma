@@ -13,6 +13,12 @@ enum UserRole {
   ADMIN_RH        // Admin de RH da empresa
 }
 
+enum FeedbackProcessStatus {
+  DRAFT
+  SENT_FOR_VALIDATION
+  PLANNED
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   name      String
@@ -20,6 +26,39 @@ model User {
   email     String   @unique
   password  String
   role      UserRole @default(TEAM_MEMBER)
+  teamId    Int?
+  team      Team?    @relation(fields: [teamId], references: [id], onDelete: Restrict)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  ownedFeedbackProcesses FeedbackProcess[] @relation("FeedbackProcessOwner")
+  receivedFeedbackProcesses FeedbackProcess[] @relation("FeedbackProcessParticipant")
+  @@index([teamId])
+}
+
+model Team {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
+}
+
+model FeedbackProcess {
+  id            Int                   @id @default(autoincrement())
+  description   String?
+  objective     String                @default("")
+  startsAt      DateTime?
+  endsAt        DateTime?
+  criteria      String[]              @default([])
+  status        FeedbackProcessStatus @default(DRAFT)
+  ownerId       Int
+  owner         User                  @relation("FeedbackProcessOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  participantId Int?
+  participant   User?                 @relation("FeedbackProcessParticipant", fields: [participantId], references: [id], onDelete: SetNull)
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  @@index([ownerId])
+  @@index([participantId])
 }

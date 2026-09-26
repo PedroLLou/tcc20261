@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import authService from '../services/authService';
+import type { Team } from '../services/authService';
 import '../styles/Login.css';
 
 const Login: React.FC = () => {
@@ -7,11 +9,14 @@ const Login: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [teams, setTeams] = useState<Team[]>([]);
+  useEffect(() => { void authService.listTeams().then(setTeams).catch(() => setTeams([])); }, []);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     name: '',
     age: '',
+    teamId: '',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,6 +42,7 @@ const Login: React.FC = () => {
           Number(formData.age),
           formData.email,
           formData.password,
+          Number(formData.teamId),
         );
       }
     } catch (err: unknown) {
@@ -105,6 +111,13 @@ const Login: React.FC = () => {
                 required={!isLogin}
               />
             </div>
+            <div className="form-group">
+              <label htmlFor="teamId">Equipe</label>
+              <select id="teamId" name="teamId" value={formData.teamId} onChange={(event) => setFormData((prev) => ({ ...prev, teamId: event.target.value }))} required>
+                <option value="">Selecione sua equipe</option>
+                {teams.map((team) => <option key={team.id} value={team.id}>{team.name}</option>)}
+              </select>
+            </div>
           </>
         )}
 
@@ -154,6 +167,7 @@ const Login: React.FC = () => {
               password: '',
               name: '',
               age: '',
+              teamId: '',
             });
           }}
           className="toggle-button"

@@ -1,0 +1,1 @@
+ALTER TABLE "FeedbackProcess" DROP COLUMN "title";

@@ -44,6 +44,16 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
+## Create the first RH administrator
+
+On startup, the backend creates a default RH administrator if the database has no `ADMIN_RH` user:
+
+- Email: `admin.rh@empresa.com`
+- Password: `Admin@123456`
+- Name: `Administrador RH`
+
+Set `DEFAULT_ADMIN_RH_EMAIL` and `DEFAULT_ADMIN_RH_PASSWORD` before startup to override the defaults. This account creates other RH users, teams, team leaders, and members through the application. Members can also register by selecting an existing team.
+
 ## Run tests
 
 ```bash
