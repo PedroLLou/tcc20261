@@ -1,0 +1,4 @@
+ALTER TYPE "FeedbackProcessStatus" ADD VALUE 'SENT_FOR_VALIDATION';
+
+ALTER TABLE "FeedbackProcess"
+  ALTER COLUMN "status" SET DEFAULT 'DRAFT';

@@ -20,6 +20,10 @@ export interface RegisterRequest {
   password: string;
 }
 
+export interface CreateManagedUserRequest extends RegisterRequest {
+  role: User['role'];
+}
+
 class AuthService {
   private api: ReturnType<typeof axios.create>;
 
@@ -91,6 +95,16 @@ class AuthService {
     this.setUser(user);
 
     return user;
+  }
+
+  async createManagedUser(
+    data: CreateManagedUserRequest,
+  ): Promise<Omit<User, 'access_token'>> {
+    const response = await this.api.post<Omit<User, 'access_token'>>(
+      '/api/v1/auth/users',
+      data,
+    );
+    return response.data;
   }
 
   logout(): void {

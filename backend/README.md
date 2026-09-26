@@ -44,6 +44,13 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
+## Create the first RH administrator
+
+From the `backend` directory, run `npm run admin:create`. The command asks for
+the account details, hides password input, and creates an `ADMIN_RH` user in the
+configured database. Once created, that administrator can create additional
+accounts with any role from the application.
+
 ## Run tests
 
 ```bash

@@ -7,7 +7,12 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import type { User } from '@prisma/client';
 import { PrismaService } from '../prisma.service';
-import { LoginDto, RegisterDto, AuthResponseDto } from '../dto/auth.dto';
+import {
+  CreateManagedUserDto,
+  LoginDto,
+  RegisterDto,
+  AuthResponseDto,
+} from '../dto/auth.dto';
 
 interface JwtPayload {
   sub: number;
@@ -49,6 +54,26 @@ export class AuthService {
     });
 
     return this.generateAuthResponse(user);
+  }
+
+  async createManagedUser(dto: CreateManagedUserDto) {
+    const email = dto.email.trim();
+    const existingUser = await this.prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      throw new ConflictException('Email já cadastrado');
+    }
+
+    const password = await bcrypt.hash(dto.password, 10);
+    return this.prisma.user.create({
+      data: {
+        name: dto.name.trim(),
+        age: dto.age,
+        email,
+        password,
+        role: dto.role,
+      },
+      select: { id: true, name: true, age: true, email: true, role: true },
+    });
   }
 
   async login(loginDto: LoginDto): Promise<AuthResponseDto> {

@@ -10,6 +10,10 @@ export class RegisterDto {
   password: string;
 }
 
+export class CreateManagedUserDto extends RegisterDto {
+  role: 'TEAM_MEMBER' | 'ADMIN_LEADER' | 'ADMIN_RH';
+}
+
 export class AuthResponseDto {
   id: number;
   email: string;

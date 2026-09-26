@@ -1,7 +1,14 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
-import { LoginDto, RegisterDto, AuthResponseDto } from '../dto/auth.dto';
+import {
+  CreateManagedUserDto,
+  LoginDto,
+  RegisterDto,
+  AuthResponseDto,
+} from '../dto/auth.dto';
 import { ApiTags, ApiResponse } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { Roles, RolesGuard } from '../guards/roles.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -12,6 +19,13 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'Usuário criado com sucesso' })
   async register(@Body() registerDto: RegisterDto): Promise<AuthResponseDto> {
     return this.authService.register(registerDto);
+  }
+
+  @Post('users')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN_RH')
+  async createManagedUser(@Body() dto: CreateManagedUserDto) {
+    return this.authService.createManagedUser(dto);
   }
 
   @Post('login')

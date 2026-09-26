@@ -13,6 +13,11 @@ enum UserRole {
   ADMIN_RH        // Admin de RH da empresa
 }
 
+enum FeedbackProcessStatus {
+  DRAFT
+  SENT_FOR_VALIDATION
+  PLANNED
+}
 
 model User {
   id        Int      @id @default(autoincrement())
@@ -25,16 +30,24 @@ model User {
   updatedAt DateTime @updatedAt
 
   ownedFeedbackProcesses FeedbackProcess[] @relation("FeedbackProcessOwner")
+  receivedFeedbackProcesses FeedbackProcess[] @relation("FeedbackProcessParticipant")
 }
 
 model FeedbackProcess {
-  id          Int                  @id @default(autoincrement())
-  title       String
-  description String?
-  ownerId     Int
-  owner       User                 @relation("FeedbackProcessOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  createdAt   DateTime             @default(now())
-  updatedAt   DateTime             @updatedAt
+  id            Int                   @id @default(autoincrement())
+  description   String?
+  objective     String                @default("")
+  startsAt      DateTime?
+  endsAt        DateTime?
+  criteria      String[]              @default([])
+  status        FeedbackProcessStatus @default(DRAFT)
+  ownerId       Int
+  owner         User                  @relation("FeedbackProcessOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  participantId Int?
+  participant   User?                 @relation("FeedbackProcessParticipant", fields: [participantId], references: [id], onDelete: SetNull)
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
 
   @@index([ownerId])
+  @@index([participantId])
 }
