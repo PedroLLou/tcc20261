@@ -1,43 +1,39 @@
-## Descrição
+<!-- Proposta de template para o TCC2, ainda em discussão com o grupo. -->
 
-<!-- Descreva em 2-4 linhas o que este PR faz e por quê. -->
+## O que mudou e por quê?
+
+<!-- Explique o problema e a solução em poucas linhas. -->
 
 ## Issue relacionada
 
-<!-- Se houver issue associada, use `Closes #N` para fechá-la no merge.
-     Se não houver, pode apagar esta seção ou escrever "N/A". -->
+<!-- Use Refs #N. Feche a issue depois de conferir o resultado na main. Use Closes #N somente se o merge concluir toda a tarefa e o grupo tiver combinado isso. Se não houver issue, explique o motivo. -->
 
-Closes #
+Refs #
 
-## Tipo de mudança
+## Como foi verificado?
 
-- [ ] `feat` — nova funcionalidade
-- [ ] `fix` — correção de bug
-- [ ] `refactor` — refatoração sem mudança de comportamento
-- [ ] `docs` — documentação
-- [ ] `test` — testes
-- [ ] `chore` — manutenção (deps, configs, scripts)
-- [ ] `ci` — pipeline de CI/CD
-- [ ] Outro: 
+<!-- Liste os comandos ou passos, os resultados e o commit verificado. Se algo não foi testado, diga o que faltou e por quê. -->
 
-## Como testar
+## O que falta?
 
-<!-- Passos que o revisor deve seguir para validar a mudança localmente. -->
+<!-- Registre limitações, pendências ou escreva "Nada dentro do escopo deste PR". -->
 
-1. 
-2. 
-3. 
+## Revisão
+
+<!-- Indique o colega que vai revisar. Se usou IA como apoio, registre os apontamentos que foram conferidos; isso não substitui a revisão do colega. -->
+
+Revisor:
 
 ## Checklist
 
-- [ ] Segui o [workflow de desenvolvimento](../docs/workflow.md)
-- [ ] Título do PR segue Conventional Commits (`tipo(escopo): descrição`)
-- [ ] Branch atualizada com o `main`
-- [ ] Testes adicionados ou atualizados (quando aplicável)
-- [ ] Testes existentes continuam passando localmente
-- [ ] Documentação atualizada (quando aplicável)
-- [ ] Fiz auto-revisão do meu próprio código antes de pedir revisão
+- [ ] Li o [workflow](https://github.com/PedroLLou/tcc20261/blob/main/docs/workflow.md)
+- [ ] Expliquei a tarefa e o resultado esperado
+- [ ] O título segue o formato `tipo(escopo): descrição`
+- [ ] Conferi meu próprio diff
+- [ ] Registrei as verificações do commit atual e o que não foi testado
+- [ ] Atualizei a documentação quando necessário
+- [ ] Pedi revisão de outro integrante
 
-## Screenshots / evidências (opcional)
+## Imagens, se necessário
 
-<!-- Se a mudança afeta UI ou comportamento visível, cole prints ou gifs aqui. -->
+<!-- Para mudanças visuais, inclua imagens que ajudem a entender o resultado. -->
