@@ -18,10 +18,23 @@ export interface RegisterRequest {
   age: number;
   email: string;
   password: string;
+  teamId: number;
 }
 
-export interface CreateManagedUserRequest extends RegisterRequest {
+export interface Team { id: number; name: string; _count?: { users: number }; }
+export interface ManagedUser {
+  id: number;
+  name: string;
+  age: number;
+  email: string;
   role: User['role'];
+  teamId: number | null;
+  team: { id: number; name: string } | null;
+}
+
+export interface CreateManagedUserRequest extends Omit<RegisterRequest, 'teamId'> {
+  role: User['role'];
+  teamId: number | null;
 }
 
 class AuthService {
@@ -105,6 +118,29 @@ class AuthService {
       data,
     );
     return response.data;
+  }
+
+  async listTeams(): Promise<Team[]> {
+    const response = await this.api.get<Team[]>('/api/v1/auth/teams');
+    return response.data;
+  }
+
+  async createTeam(name: string): Promise<Team> {
+    const response = await this.api.post<Team>('/api/v1/auth/teams', { name });
+    return response.data;
+  }
+
+  async deleteTeam(id: number): Promise<void> {
+    await this.api.delete(`/api/v1/auth/teams/${id}`);
+  }
+
+  async listManagedUsers(): Promise<ManagedUser[]> {
+    const response = await this.api.get<ManagedUser[]>('/api/v1/auth/users');
+    return response.data;
+  }
+
+  async deleteManagedUser(id: number): Promise<void> {
+    await this.api.delete(`/api/v1/auth/users/${id}`);
   }
 
   logout(): void {

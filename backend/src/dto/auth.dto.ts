@@ -8,11 +8,14 @@ export class RegisterDto {
   age: number;
   email: string;
   password: string;
+  teamId: number;
 }
 
 export class CreateManagedUserDto extends RegisterDto {
   role: 'TEAM_MEMBER' | 'ADMIN_LEADER' | 'ADMIN_RH';
 }
+
+export class CreateTeamDto { name: string; }
 
 export class AuthResponseDto {
   id: number;

@@ -14,6 +14,7 @@ describe('AuthService', () => {
   let authService: AuthService;
 
   const prismaMock = {
+    team: { findUnique: jest.fn() },
     user: {
       findUnique: jest.fn(),
       create: jest.fn(),
@@ -40,6 +41,7 @@ describe('AuthService', () => {
         age: 25,
         email: 'leo@email.com',
         password: '123456',
+        teamId: 7,
       };
 
       const createdUser = {
@@ -52,6 +54,7 @@ describe('AuthService', () => {
       };
 
       prismaMock.user.findUnique.mockResolvedValue(null);
+      prismaMock.team.findUnique.mockResolvedValue({ id: 7, name: 'Produto' });
       prismaMock.user.create.mockResolvedValue(createdUser);
       jwtServiceMock.sign.mockReturnValue('token-teste');
 
@@ -72,6 +75,7 @@ describe('AuthService', () => {
           email: 'leo@email.com',
           password: 'senha-hash',
           role: 'TEAM_MEMBER',
+          teamId: 7,
         },
       });
 
@@ -102,6 +106,7 @@ describe('AuthService', () => {
           age: 25,
           email: 'leo@email.com',
           password: '123456',
+          teamId: 7,
         }),
       ).rejects.toThrow(ConflictException);
 

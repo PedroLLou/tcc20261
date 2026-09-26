@@ -1,15 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import authService from '../services/authService';
-import type { CreateManagedUserRequest } from '../services/authService';
 import FeedbackProcessCreation from './FeedbackProcessCreation';
+import ManagedUserCreation from './ManagedUserCreation';
+import TeamManagement from './TeamManagement';
 import feedbackProcessService from '../services/feedbackProcessService';
 import type { FeedbackProcess } from '../services/feedbackProcessService';
 import '../styles/Dashboard.css';
-
-type ManagedUserFormState = Omit<CreateManagedUserRequest, 'age'> & {
-  age: string;
-};
 
 const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
@@ -19,17 +15,7 @@ const Dashboard: React.FC = () => {
   const [deletingProcessId, setDeletingProcessId] = useState<number | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [selectedProcess, setSelectedProcess] = useState<FeedbackProcess | null>(null);
-  const [isUserFormOpen, setIsUserFormOpen] = useState(false);
-  const [isCreatingUser, setIsCreatingUser] = useState(false);
-  const [userFormError, setUserFormError] = useState('');
-  const [userFormMessage, setUserFormMessage] = useState('');
-  const [newUser, setNewUser] = useState<ManagedUserFormState>({
-    name: '',
-    age: '',
-    email: '',
-    password: '',
-    role: 'ADMIN_LEADER',
-  });
+  const [managementScreen, setManagementScreen] = useState<'users' | 'teams' | null>(null);
 
   const canAccessFeedbackProcesses =
     user?.role === 'ADMIN_LEADER' || user?.role === 'ADMIN_RH';
@@ -69,32 +55,6 @@ const Dashboard: React.FC = () => {
       setProcessError('Não foi possível excluir o planejamento. Tente novamente.');
     } finally {
       setDeletingProcessId(null);
-    }
-  };
-
-  const createManagedUser = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setIsCreatingUser(true);
-    setUserFormError('');
-    setUserFormMessage('');
-    try {
-      const createdUser = await authService.createManagedUser({
-        ...newUser,
-        age: Number(newUser.age),
-      });
-      setUserFormMessage(`Conta de ${createdUser.name} criada com sucesso.`);
-      setNewUser({
-        name: '',
-        age: '',
-        email: '',
-        password: '',
-        role: 'ADMIN_LEADER',
-      });
-      setIsUserFormOpen(false);
-    } catch {
-      setUserFormError('Não foi possível criar a conta. Verifique os dados e tente novamente.');
-    } finally {
-      setIsCreatingUser(false);
     }
   };
 
@@ -146,11 +106,14 @@ const Dashboard: React.FC = () => {
         return (
           <>
             <h2>Painel de Administração de RH</h2>
+            <div className="rh-actions" aria-label="Ações de administração de RH">
+              <button type="button" className="process-create-button" onClick={() => setManagementScreen('users')}>Criar usuário</button>
+              <button type="button" className="process-open-button" onClick={() => setManagementScreen('teams')}>Gerenciar equipes</button>
+            </div>
             <div className="dashboard-workspace">
               {renderReportsPanel()}
               {renderProcessPanel()}
             </div>
-            {renderUserManagementPanel()}
           </>
         );
 
@@ -158,61 +121,6 @@ const Dashboard: React.FC = () => {
         return <div>Acesso não autorizado</div>;
     }
   };
-
-  const renderUserManagementPanel = () => (
-    <section className="user-management-panel" aria-labelledby="user-management-title">
-      <div className="user-management-heading">
-        <div>
-          <p className="process-panel-eyebrow">Acessos</p>
-          <h3 id="user-management-title">Usuários</h3>
-        </div>
-        <button
-          className="user-management-toggle"
-          type="button"
-          onClick={() => {
-            setIsUserFormOpen((isOpen) => !isOpen);
-            setUserFormError('');
-            setUserFormMessage('');
-          }}
-        >
-          {isUserFormOpen ? 'Cancelar' : 'Criar usuário'}
-        </button>
-      </div>
-      {userFormMessage && <p className="user-form-message" role="status">{userFormMessage}</p>}
-      {userFormError && <p className="process-list-error" role="alert">{userFormError}</p>}
-      {isUserFormOpen && (
-        <form className="user-create-form" onSubmit={(event) => void createManagedUser(event)}>
-          <div className="user-create-field">
-            <label htmlFor="managed-user-name">Nome completo</label>
-            <input id="managed-user-name" value={newUser.name} onChange={(event) => setNewUser({ ...newUser, name: event.target.value })} required />
-          </div>
-          <div className="user-create-field">
-            <label htmlFor="managed-user-age">Idade</label>
-            <input id="managed-user-age" type="number" min="1" value={newUser.age} onChange={(event) => setNewUser({ ...newUser, age: event.target.value })} required />
-          </div>
-          <div className="user-create-field">
-            <label htmlFor="managed-user-email">Email</label>
-            <input id="managed-user-email" type="email" value={newUser.email} onChange={(event) => setNewUser({ ...newUser, email: event.target.value })} required />
-          </div>
-          <div className="user-create-field">
-            <label htmlFor="managed-user-password">Senha inicial</label>
-            <input id="managed-user-password" type="password" minLength={8} value={newUser.password} onChange={(event) => setNewUser({ ...newUser, password: event.target.value })} required />
-          </div>
-          <div className="user-create-field">
-            <label htmlFor="managed-user-role">Perfil de acesso</label>
-            <select id="managed-user-role" value={newUser.role} onChange={(event) => setNewUser({ ...newUser, role: event.target.value as CreateManagedUserRequest['role'] })}>
-              <option value="TEAM_MEMBER">Membro da equipe</option>
-              <option value="ADMIN_LEADER">Admin - Líder de equipe</option>
-              <option value="ADMIN_RH">Admin - RH</option>
-            </select>
-          </div>
-          <button className="user-management-toggle" type="submit" disabled={isCreatingUser}>
-            {isCreatingUser ? 'Criando...' : 'Criar conta'}
-          </button>
-        </form>
-      )}
-    </section>
-  );
 
   const renderReportsPanel = () => (
     <section className="report-panel" aria-labelledby="reports-panel-title">
@@ -284,6 +192,7 @@ const Dashboard: React.FC = () => {
   const isPlanningScreen =
     canAccessFeedbackProcesses &&
     (selectedProcess !== null || (canCreateFeedbackProcess && isCreating));
+  const isManagementScreen = user?.role === 'ADMIN_RH' && managementScreen !== null;
 
   return (
     <div className="dashboard-container">
@@ -301,8 +210,12 @@ const Dashboard: React.FC = () => {
       </header>
 
       <main className="dashboard-main">
-        <div className={`dashboard-content${isPlanningScreen ? ' dashboard-content-planning' : ''}`}>
-          {isPlanningScreen && user ? (
+        <div className={`dashboard-content${isPlanningScreen || isManagementScreen ? ' dashboard-content-planning' : ''}`}>
+          {isManagementScreen && managementScreen === 'users' ? (
+            <ManagedUserCreation currentUserId={user.id} onBack={() => setManagementScreen(null)} />
+          ) : isManagementScreen && managementScreen === 'teams' ? (
+            <TeamManagement onBack={() => setManagementScreen(null)} />
+          ) : isPlanningScreen && user ? (
             <FeedbackProcessCreation
               key={selectedProcess?.id ?? 'new-process'}
               initialProcess={selectedProcess}

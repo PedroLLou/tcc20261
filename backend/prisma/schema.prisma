@@ -26,11 +26,22 @@ model User {
   email     String   @unique
   password  String
   role      UserRole @default(TEAM_MEMBER)
+  teamId    Int?
+  team      Team?    @relation(fields: [teamId], references: [id], onDelete: Restrict)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   ownedFeedbackProcesses FeedbackProcess[] @relation("FeedbackProcessOwner")
   receivedFeedbackProcesses FeedbackProcess[] @relation("FeedbackProcessParticipant")
+  @@index([teamId])
+}
+
+model Team {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
 }
 
 model FeedbackProcess {

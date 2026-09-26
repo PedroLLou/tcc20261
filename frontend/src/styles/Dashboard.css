@@ -412,6 +412,38 @@
   font-size: 14px;
 }
 
+.rh-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.rh-actions .process-create-button,
+.rh-actions .process-open-button {
+  box-sizing: border-box;
+  width: 220px;
+  min-width: 220px;
+  flex: 0 0 220px;
+  min-height: 44px;
+}
+
+.team-management {
+  max-width: 840px;
+  margin-top: 22px;
+  padding: 18px;
+  border: 1px solid #d9e1df;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.team-management h4 { margin: 0 0 12px; color: #263b36; }
+.team-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; padding: 0; list-style: none; }
+.team-list li { padding: 6px 10px; border-radius: 16px; background: #e8f2ee; color: #185d4b; font-size: 13px; }
+.team-create-form { display: flex; align-items: center; gap: 10px; }
+.team-create-form label { font-size: 13px; font-weight: 600; }
+.team-create-form input { flex: 1; min-width: 100px; min-height: 40px; padding: 8px 10px; border: 1px solid #cfd8d4; border-radius: 5px; font: inherit; }
+
 .feedback-status {
   display: inline-block;
   padding: 5px 8px;
@@ -455,6 +487,13 @@
     grid-template-columns: 1fr;
   }
 
+  .rh-actions .process-create-button,
+  .rh-actions .process-open-button {
+    width: calc(50% - 6px);
+    min-width: 0;
+    flex-basis: calc(50% - 6px);
+  }
+
   .report-panel {
     min-height: 320px;
     padding: 18px 14px;
@@ -474,5 +513,10 @@
 
   .user-management-heading {
     align-items: flex-start;
+  }
+
+  .team-create-form {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
