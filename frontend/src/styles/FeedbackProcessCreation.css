@@ -1,0 +1,119 @@
+.feedback-create-panel {
+  max-width: 760px;
+  margin: 28px auto 0;
+  padding: 28px 32px 32px;
+  background: #fff;
+  border: 1px solid #e3e5ec;
+  border-top: 3px solid #667eea;
+  border-radius: 8px;
+  box-shadow: 0 3px 14px rgba(25, 30, 50, 0.06);
+}
+
+.feedback-create-eyebrow {
+  margin: 0 0 8px;
+  color: #6672bc;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.feedback-create-panel h2 {
+  margin: 0;
+  color: #242638;
+  font-size: 24px;
+  line-height: 1.3;
+}
+
+.feedback-create-intro {
+  margin: 8px 0 24px;
+  color: #626777;
+  font-size: 14px;
+}
+
+.feedback-create-form {
+  display: grid;
+  gap: 20px;
+}
+
+.feedback-create-field {
+  display: grid;
+  gap: 7px;
+}
+
+.feedback-create-field label {
+  color: #333648;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.feedback-create-field input,
+.feedback-create-field textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #cfd2dc;
+  border-radius: 5px;
+  background: #fff;
+  color: #252738;
+  font: inherit;
+}
+
+.feedback-create-field textarea {
+  min-height: 104px;
+  resize: vertical;
+}
+
+.feedback-create-field input:focus,
+.feedback-create-field textarea:focus {
+  border-color: #6672bc;
+  outline: 3px solid rgba(102, 114, 188, 0.16);
+}
+
+.feedback-create-hint {
+  color: #747887;
+  font-size: 12px;
+}
+
+.feedback-create-button {
+  justify-self: start;
+  min-height: 42px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 5px;
+  background: #4d5fa8;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+
+.feedback-create-button:hover:not(:disabled) {
+  background: #3f508f;
+}
+
+.feedback-create-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.feedback-create-error {
+  margin: 0;
+  color: #b42318;
+  font-size: 14px;
+}
+
+.feedback-create-success {
+  margin: 12px 0 24px;
+  color: #276749;
+}
+
+@media (max-width: 600px) {
+  .feedback-create-panel {
+    margin-top: 20px;
+    padding: 22px 18px 24px;
+  }
+
+  .feedback-create-panel h2 {
+    font-size: 21px;
+  }
+}

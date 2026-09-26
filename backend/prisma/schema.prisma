@@ -13,6 +13,7 @@ enum UserRole {
   ADMIN_RH        // Admin de RH da empresa
 }
 
+
 model User {
   id        Int      @id @default(autoincrement())
   name      String
@@ -22,4 +23,18 @@ model User {
   role      UserRole @default(TEAM_MEMBER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  ownedFeedbackProcesses FeedbackProcess[] @relation("FeedbackProcessOwner")
+}
+
+model FeedbackProcess {
+  id          Int                  @id @default(autoincrement())
+  title       String
+  description String?
+  ownerId     Int
+  owner       User                 @relation("FeedbackProcessOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  @@index([ownerId])
 }
