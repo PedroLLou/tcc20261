@@ -15,3 +15,7 @@ export class UpdateFeedbackProcessDto {
   endsAt?: string | null;
   criteria?: string[];
 }
+
+export class FeedbackProcessObservationDto {
+  observation: string;
+}

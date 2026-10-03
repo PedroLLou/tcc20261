@@ -17,6 +17,7 @@ import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { Roles, RolesGuard } from '../guards/roles.guard';
 import {
   CreateFeedbackProcessDto,
+  FeedbackProcessObservationDto,
   UpdateFeedbackProcessDto,
 } from '../dto/feedback-process.dto';
 import { FeedbackProcessService } from '../services/feedback-process.service';
@@ -93,6 +94,26 @@ export class FeedbackProcessController {
   @UseGuards(RolesGuard)
   approve(@Param('id', ParseIntPipe) id: number) {
     return this.feedbackProcessService.approve(id);
+  }
+
+  @Post(':id/observation')
+  @Roles('ADMIN_RH')
+  @UseGuards(RolesGuard)
+  registerObservation(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: FeedbackProcessObservationDto,
+  ) {
+    return this.feedbackProcessService.registerObservation(id, dto.observation);
+  }
+
+  @Post(':id/request-adjustments')
+  @Roles('ADMIN_RH')
+  @UseGuards(RolesGuard)
+  requestAdjustments(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: FeedbackProcessObservationDto,
+  ) {
+    return this.feedbackProcessService.requestAdjustments(id, dto.observation);
   }
 
   @Delete(':id')
