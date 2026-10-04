@@ -62,6 +62,8 @@ Documentação técnica e diagramas do projeto. Mistura formatos:
 docs/
 ├── workflow.md
 ├── estrutura-repositorio.md         ← este documento
+├── auditoria.md                     ← auditoria das alterações de dados (banco)
+├── analise-seguranca.md             ← análise de segurança do sistema (issues #104–#111)
 ├── Descrição da Arquitetura/        ← descritivo da arquitetura (.docx + .pdf)
 ├── Descrição dos Casos de Uso/      ← descritivo dos casos de uso (.docx)
 ├── Diagrama de Atividades/          ← diagrama de atividades (.png)
