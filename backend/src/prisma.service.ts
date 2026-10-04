@@ -2,24 +2,35 @@ import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcrypt';
+import { auditExtension } from './prisma-audit.extension';
+import { AuditContextService } from './services/audit-context.service';
 
 @Injectable()
 export class PrismaService
   extends PrismaClient
   implements OnModuleInit, OnModuleDestroy
 {
-  constructor() {
+  constructor(auditContext: AuditContextService) {
     const adapter = new PrismaPg({
       connectionString: process.env.DATABASE_URL,
     });
     super({ adapter });
+    // Todas as operações passam pela extensão de auditoria, que informa ao
+    // PostgreSQL quem está operando. Os services continuam usando
+    // this.prisma normalmente.
+    return this.$extends(
+      auditExtension(auditContext),
+    ) as unknown as PrismaService;
   }
 
   async onModuleInit(): Promise<void> {
     await this.$connect();
-    const existingAdmin = await this.user.findFirst({ where: { role: 'ADMIN_RH' } });
+    const existingAdmin = await this.user.findFirst({
+      where: { role: 'ADMIN_RH' },
+    });
     if (!existingAdmin) {
-      const email = process.env.DEFAULT_ADMIN_RH_EMAIL ?? 'admin.rh@empresa.com';
+      const email =
+        process.env.DEFAULT_ADMIN_RH_EMAIL ?? 'admin.rh@empresa.com';
       const password = process.env.DEFAULT_ADMIN_RH_PASSWORD ?? 'Admin@123456';
       const passwordHash = await bcrypt.hash(password, 10);
       await this.user.upsert({
