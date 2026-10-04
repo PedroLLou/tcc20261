@@ -97,8 +97,10 @@ backend/
     ├── app.module.ts         ← módulo raiz
     ├── prisma.module.ts      ← módulo Prisma (injeção de dependência)
     ├── prisma.service.ts     ← serviço Prisma (acesso ao client)
+    ├── prisma-audit.extension.ts ← extensão do Prisma que alimenta a auditoria
     ├── controllers/          ← entrada da API
     ├── dto/                  ← formato dos dados da API
+    ├── interceptors/         ← interceptors globais do NestJS
     ├── models/               ← entidades de domínio
     ├── modules/              ← agrupadores de funcionalidade
     ├── repositories/         ← acesso a dados via Prisma
@@ -126,6 +128,13 @@ Arquitetura em camadas decidida na reunião de 04/04/2026:
   que disponibilizam o Prisma Client via injeção de dependência. Vivem em
   `src/` (não em pasta própria) por serem componentes infraestruturais
   reutilizados por todos os repositories.
+- **`prisma-audit.extension.ts`** — extensão do Prisma Client aplicada pelo
+  `prisma.service.ts`. Informa ao PostgreSQL quem está operando, para os
+  triggers de auditoria. Fica ao lado do serviço Prisma pelo mesmo motivo
+  (infraestrutura de persistência). Ver [`docs/auditoria.md`](auditoria.md).
+- **`interceptors/`** — interceptors do NestJS, que envolvem a execução das
+  rotas. Hoje contém o `AuditContextInterceptor`, que registra o usuário
+  autenticado de cada requisição para a auditoria.
 
 ### 3.3. Pasta `prisma/`
 
