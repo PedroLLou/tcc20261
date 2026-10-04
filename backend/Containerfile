@@ -1,0 +1,51 @@
+ARG NODE_IMAGE=docker.io/library/node:24-bookworm-slim
+FROM ${NODE_IMAGE} AS base
+WORKDIR /app
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends openssl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+FROM base AS dependencies
+COPY package.json package-lock.json ./
+COPY prisma ./prisma
+COPY prisma.config.ts ./
+RUN npm ci --no-audit --no-fund
+RUN DATABASE_URL=postgresql://build:build@localhost:5432/build \
+    ./node_modules/.bin/prisma generate
+
+FROM dependencies AS test
+COPY tsconfig*.json nest-cli.json ./
+COPY src ./src
+CMD ["npm", "test", "--", "--runInBand"]
+
+FROM test AS build
+RUN npm run build && test -f dist/src/main.js
+
+FROM dependencies AS production-dependencies
+RUN npm prune --omit=dev --omit=optional --ignore-scripts --no-audit --no-fund \
+    && test ! -d node_modules/prisma \
+    && test ! -d node_modules/typescript \
+    && node -e "require('dotenv/config'); require('@prisma/client'); require('bcrypt')"
+
+FROM dependencies AS migration-dependencies
+# Manter o CLI só na imagem de migração. A versão vem do lockfile existente.
+RUN npm pkg delete devDependencies.prisma \
+    && npm pkg set 'dependencies.prisma=^6.12.0' \
+    && npm prune --omit=dev --omit=optional --ignore-scripts --offline --no-audit --no-fund \
+    && test -x node_modules/.bin/prisma
+
+FROM base AS migration
+ENV NODE_ENV=production
+COPY --from=migration-dependencies --chown=node:node /app/node_modules ./node_modules
+COPY --chown=node:node prisma ./prisma
+COPY --chown=node:node prisma.config.ts package.json package-lock.json ./
+USER node
+CMD ["./node_modules/.bin/prisma", "migrate", "deploy"]
+
+FROM base AS runtime
+ENV NODE_ENV=production
+COPY --from=production-dependencies --chown=node:node /app/node_modules ./node_modules
+COPY --from=build --chown=node:node /app/dist ./dist
+USER node
+EXPOSE 3001
+CMD ["node", "dist/src/main.js"]
