@@ -62,3 +62,47 @@ model FeedbackProcess {
   @@index([ownerId])
   @@index([participantId])
 }
+
+// ---------------------------------------------------------------------------
+// Auditoria (não-repúdio)
+//
+// Os registros são gravados exclusivamente por triggers do PostgreSQL
+// (função audit_record_change), na mesma transação da operação auditada.
+// A aplicação apenas informa quem está operando, por meio de configurações
+// locais da transação (ver src/prisma-audit.extension.ts).
+//
+// Não há chave estrangeira para User de propósito: o histórico precisa
+// sobreviver à exclusão do usuário que realizou a operação.
+// ---------------------------------------------------------------------------
+
+enum AuditOperation {
+  INSERT
+  UPDATE
+  DELETE
+}
+
+enum AuditSource {
+  APPLICATION // operação feita pela API, com o usuário autenticado (quando houver)
+  DATABASE // operação feita direto no banco (pgAdmin, psql etc.)
+}
+
+model AuditLog {
+  id            Int            @id @default(autoincrement())
+  operation     AuditOperation
+  tableName     String
+  recordId      String
+  oldData       Json?
+  newData       Json?
+  actorId       Int?
+  actorEmail    String?
+  source        AuditSource
+  dbUser        String
+  clientIp      String?
+  request       String?
+  transactionId BigInt
+  createdAt     DateTime       @default(now())
+
+  @@index([tableName, recordId])
+  @@index([actorId])
+  @@index([createdAt])
+}
