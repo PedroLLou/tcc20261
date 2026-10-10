@@ -29,6 +29,7 @@ export interface FeedbackProcess {
   startsAt: string | null;
   endsAt: string | null;
   criteria: string[];
+  observation: string | null;
   status: FeedbackProcessStatus;
   ownerId: number;
   participantId: number | null;
@@ -61,6 +62,22 @@ class FeedbackProcessService {
   async approve(id: number): Promise<FeedbackProcess> {
     const response = await api.post<FeedbackProcess>(
       `/feedback-processes/${id}/approve`,
+    );
+    return response.data;
+  }
+
+  async registerObservation(id: number, observation: string): Promise<FeedbackProcess> {
+    const response = await api.post<FeedbackProcess>(
+      `/feedback-processes/${id}/observation`,
+      { observation },
+    );
+    return response.data;
+  }
+
+  async requestAdjustments(id: number, observation: string): Promise<FeedbackProcess> {
+    const response = await api.post<FeedbackProcess>(
+      `/feedback-processes/${id}/request-adjustments`,
+      { observation },
     );
     return response.data;
   }

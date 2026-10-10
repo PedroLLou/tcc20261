@@ -18,6 +18,7 @@ const processSelection = {
   startsAt: true,
   endsAt: true,
   criteria: true,
+  observation: true,
   status: true,
   ownerId: true,
   participantId: true,
@@ -148,6 +149,32 @@ export class FeedbackProcessService {
     });
   }
 
+  async registerObservation(id: number, observation: string) {
+    await this.findOne(id);
+    return this.prisma.feedbackProcess.update({
+      where: { id },
+      data: { observation: this.normalizeObservation(observation) },
+      select: processSelection,
+    });
+  }
+
+  async requestAdjustments(id: number, observation: string) {
+    const current = await this.findOne(id);
+    if (current.status !== 'SENT_FOR_VALIDATION') {
+      throw new BadRequestException(
+        'Somente processos enviados para validação podem ter ajustes solicitados.',
+      );
+    }
+    return this.prisma.feedbackProcess.update({
+      where: { id },
+      data: {
+        observation: this.normalizeObservation(observation),
+        status: 'DRAFT',
+      },
+      select: processSelection,
+    });
+  }
+
   async delete(id: number) {
     await this.findOne(id);
     await this.prisma.feedbackProcess.delete({ where: { id } });
@@ -180,6 +207,19 @@ export class FeedbackProcessService {
       );
     }
     return description;
+  }
+
+  private normalizeObservation(value: string): string {
+    if (typeof value !== 'string' || !value.trim()) {
+      throw new BadRequestException('Informe uma observação.');
+    }
+    const observation = value.trim();
+    if (observation.length > 2000) {
+      throw new BadRequestException(
+        'A observação deve ter no máximo 2000 caracteres.',
+      );
+    }
+    return observation;
   }
 
   private async validateParticipant(value?: number | null): Promise<number> {

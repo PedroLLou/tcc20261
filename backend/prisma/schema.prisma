@@ -51,6 +51,7 @@ model FeedbackProcess {
   startsAt      DateTime?
   endsAt        DateTime?
   criteria      String[]              @default([])
+  observation   String?
   status        FeedbackProcessStatus @default(DRAFT)
   ownerId       Int
   owner         User                  @relation("FeedbackProcessOwner", fields: [ownerId], references: [id], onDelete: Cascade)

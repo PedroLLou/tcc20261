@@ -52,6 +52,7 @@ const FeedbackProcessCreation: React.FC<FeedbackProcessCreationProps> = ({
   const [startsAt, setStartsAt] = useState(dateInputValue(initialProcess?.startsAt));
   const [endsAt, setEndsAt] = useState(dateInputValue(initialProcess?.endsAt));
   const [criteria, setCriteria] = useState(initialProcess?.criteria.join('\n') ?? '');
+  const [observation, setObservation] = useState(initialProcess?.observation ?? '');
   const [participants, setParticipants] = useState<TeamMember[]>([]);
   const [isLoadingParticipants, setIsLoadingParticipants] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -116,6 +117,22 @@ const FeedbackProcessCreation: React.FC<FeedbackProcessCreationProps> = ({
     }
   };
 
+  const saveObservation = async (requestAdjustments = false) => {
+    if (!initialProcess) return;
+    setError('');
+    setIsSaving(true);
+    try {
+      const process = requestAdjustments
+        ? await feedbackProcessService.requestAdjustments(initialProcess.id, observation)
+        : await feedbackProcessService.registerObservation(initialProcess.id, observation);
+      onSaved(process);
+    } catch (requestError: unknown) {
+      setError(getErrorMessage(requestError));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   if (initialProcess && !isEditing) {
     return (
       <section className="feedback-create-panel" aria-labelledby="feedback-create-title">
@@ -135,7 +152,33 @@ const FeedbackProcessCreation: React.FC<FeedbackProcessCreationProps> = ({
             <dt>Critérios de avaliação</dt>
             <dd>{initialProcess.criteria.length ? <ul>{initialProcess.criteria.map((item) => <li key={item}>{item}</li>)}</ul> : 'Ainda não definidos'}</dd>
           </div>
+          <div><dt>Observação do RH</dt><dd>{initialProcess.observation || 'Nenhuma observação registrada.'}</dd></div>
         </dl>
+        {userRole === 'ADMIN_RH' && (
+          <form className="feedback-observation-form" onSubmit={(event) => { event.preventDefault(); void saveObservation(); }}>
+            <div className="feedback-create-field">
+              <label htmlFor="feedback-observation">Registrar observação</label>
+              <textarea
+                id="feedback-observation"
+                value={observation}
+                onChange={(event) => setObservation(event.target.value)}
+                maxLength={2000}
+                rows={4}
+                required
+              />
+            </div>
+            <div className="feedback-create-actions">
+              <button className="feedback-create-secondary" type="submit" disabled={isSaving}>
+                {isSaving ? 'Salvando...' : 'Registrar observação'}
+              </button>
+              {initialProcess.status === 'SENT_FOR_VALIDATION' && (
+                <button className="feedback-create-button" type="button" disabled={isSaving} onClick={() => void saveObservation(true)}>
+                  {isSaving ? 'Solicitando...' : 'Solicitar ajustes'}
+                </button>
+              )}
+            </div>
+          </form>
+        )}
         {initialProcess.status === 'SENT_FOR_VALIDATION' && userRole === 'ADMIN_RH' ? (
           <button className="feedback-create-button" type="button" disabled={isSaving} onClick={() => void approveProcess()}>
             {isSaving ? 'Validando...' : 'Validar planejamento'}
