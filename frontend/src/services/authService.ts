@@ -1,4 +1,4 @@
-import axios from 'axios';
+import api from './api';
 
 export interface User {
   id: number;
@@ -38,16 +38,10 @@ export interface CreateManagedUserRequest extends Omit<RegisterRequest, 'teamId'
 }
 
 class AuthService {
-  private api: ReturnType<typeof axios.create>;
+  private readonly api = api;
 
   private readonly TOKEN_KEY = 'auth_token';
   private readonly USER_KEY = 'auth_user';
-
-  constructor() {
-    this.api = axios.create({
-      baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3001',
-    });
-  }
 
   setToken(token: string): void {
     localStorage.setItem(this.TOKEN_KEY, token);
@@ -84,7 +78,7 @@ class AuthService {
 
   async login(credentials: LoginRequest): Promise<User> {
     const response = await this.api.post<User>(
-      '/api/v1/auth/login',
+      '/auth/login',
       credentials,
     );
 
@@ -98,7 +92,7 @@ class AuthService {
 
   async register(data: RegisterRequest): Promise<User> {
     const response = await this.api.post<User>(
-      '/api/v1/auth/register',
+      '/auth/register',
       data,
     );
 
@@ -114,33 +108,33 @@ class AuthService {
     data: CreateManagedUserRequest,
   ): Promise<Omit<User, 'access_token'>> {
     const response = await this.api.post<Omit<User, 'access_token'>>(
-      '/api/v1/auth/users',
+      '/auth/users',
       data,
     );
     return response.data;
   }
 
   async listTeams(): Promise<Team[]> {
-    const response = await this.api.get<Team[]>('/api/v1/auth/teams');
+    const response = await this.api.get<Team[]>('/auth/teams');
     return response.data;
   }
 
   async createTeam(name: string): Promise<Team> {
-    const response = await this.api.post<Team>('/api/v1/auth/teams', { name });
+    const response = await this.api.post<Team>('/auth/teams', { name });
     return response.data;
   }
 
   async deleteTeam(id: number): Promise<void> {
-    await this.api.delete(`/api/v1/auth/teams/${id}`);
+    await this.api.delete(`/auth/teams/${id}`);
   }
 
   async listManagedUsers(): Promise<ManagedUser[]> {
-    const response = await this.api.get<ManagedUser[]>('/api/v1/auth/users');
+    const response = await this.api.get<ManagedUser[]>('/auth/users');
     return response.data;
   }
 
   async deleteManagedUser(id: number): Promise<void> {
-    await this.api.delete(`/api/v1/auth/users/${id}`);
+    await this.api.delete(`/auth/users/${id}`);
   }
 
   logout(): void {
