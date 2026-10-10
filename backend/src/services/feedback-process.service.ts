@@ -4,55 +4,33 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { PrismaService } from '../prisma.service';
+import { FeedbackProcessRepository } from '../repositories/feedback-process.repository';
+import { UserRepository } from '../repositories/user.repository';
 import {
   CreateFeedbackProcessDto,
   UpdateFeedbackProcessDto,
 } from '../dto/feedback-process.dto';
-
-const processSelection = {
-  id: true,
-  description: true,
-  objective: true,
-  startsAt: true,
-  endsAt: true,
-  criteria: true,
-  observation: true,
-  status: true,
-  ownerId: true,
-  participantId: true,
-  participant: { select: { id: true, name: true, email: true } },
-  createdAt: true,
-  updatedAt: true,
-} satisfies Prisma.FeedbackProcessSelect;
+import type { FeedbackProcess } from '../models/feedback-process.model';
 
 @Injectable()
 export class FeedbackProcessService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly processes: FeedbackProcessRepository,
+    private readonly users: UserRepository,
+  ) {}
 
-  list() {
-    return this.prisma.feedbackProcess.findMany({
-      select: processSelection,
-      orderBy: { updatedAt: 'desc' },
-    });
+  list(): Promise<FeedbackProcess[]> {
+    return this.processes.list();
   }
 
-  async findOne(id: number) {
-    const process = await this.prisma.feedbackProcess.findUnique({
-      where: { id },
-      select: processSelection,
-    });
+  async findOne(id: number): Promise<FeedbackProcess> {
+    const process = await this.processes.findById(id);
     if (!process) throw new NotFoundException('Processo não encontrado.');
     return process;
   }
 
   listParticipants() {
-    return this.prisma.user.findMany({
-      where: { role: 'TEAM_MEMBER' },
-      select: { id: true, name: true, email: true },
-      orderBy: { name: 'asc' },
-    });
+    return this.users.listParticipants();
   }
 
   async create(ownerId: number, dto: CreateFeedbackProcessDto) {
@@ -62,18 +40,15 @@ export class FeedbackProcessService {
     const endsAt = this.normalizeDate(dto.endsAt, 'término');
     this.validatePlan(status, dto.objective, startsAt, endsAt, dto.criteria);
 
-    return this.prisma.feedbackProcess.create({
-      data: {
-        description: this.normalizeDescription(dto.description),
-        objective: dto.objective.trim(),
-        startsAt,
-        endsAt,
-        criteria: this.normalizeCriteria(dto.criteria),
-        status,
-        owner: { connect: { id: ownerId } },
-        participant: { connect: { id: participantId } },
-      },
-      select: processSelection,
+    return this.processes.create({
+      description: this.normalizeDescription(dto.description),
+      objective: dto.objective.trim(),
+      startsAt,
+      endsAt,
+      criteria: this.normalizeCriteria(dto.criteria),
+      status,
+      owner: { connect: { id: ownerId } },
+      participant: { connect: { id: participantId } },
     });
   }
 
@@ -91,7 +66,9 @@ export class FeedbackProcessService {
       dto.participantId ?? current.participantId,
     );
     const startsAt = this.normalizeDate(
-      dto.startsAt === undefined ? current.startsAt?.toISOString() : dto.startsAt,
+      dto.startsAt === undefined
+        ? current.startsAt?.toISOString()
+        : dto.startsAt,
       'início',
     );
     const endsAt = this.normalizeDate(
@@ -101,20 +78,16 @@ export class FeedbackProcessService {
     const criteria = dto.criteria ?? current.criteria;
     this.validatePlan(status, objective, startsAt, endsAt, criteria);
 
-    return this.prisma.feedbackProcess.update({
-      where: { id },
-      data: {
-        description:
-          dto.description === undefined
-            ? current.description
-            : this.normalizeDescription(dto.description),
-        objective: objective.trim(),
-        startsAt,
-        endsAt,
-        criteria: this.normalizeCriteria(criteria),
-        participant: { connect: { id: participantId } },
-      },
-      select: processSelection,
+    return this.processes.update(id, {
+      description:
+        dto.description === undefined
+          ? current.description
+          : this.normalizeDescription(dto.description),
+      objective: objective.trim(),
+      startsAt,
+      endsAt,
+      criteria: this.normalizeCriteria(criteria),
+      participant: { connect: { id: participantId } },
     });
   }
 
@@ -128,11 +101,7 @@ export class FeedbackProcessService {
       current.endsAt,
       current.criteria,
     );
-    return this.prisma.feedbackProcess.update({
-      where: { id },
-      data: { status: 'SENT_FOR_VALIDATION' },
-      select: processSelection,
-    });
+    return this.processes.update(id, { status: 'SENT_FOR_VALIDATION' });
   }
 
   async approve(id: number) {
@@ -142,19 +111,13 @@ export class FeedbackProcessService {
         'Somente processos enviados para validação podem ser aprovados.',
       );
     }
-    return this.prisma.feedbackProcess.update({
-      where: { id },
-      data: { status: 'PLANNED' },
-      select: processSelection,
-    });
+    return this.processes.update(id, { status: 'PLANNED' });
   }
 
   async registerObservation(id: number, observation: string) {
     await this.findOne(id);
-    return this.prisma.feedbackProcess.update({
-      where: { id },
-      data: { observation: this.normalizeObservation(observation) },
-      select: processSelection,
+    return this.processes.update(id, {
+      observation: this.normalizeObservation(observation),
     });
   }
 
@@ -165,19 +128,15 @@ export class FeedbackProcessService {
         'Somente processos enviados para validação podem ter ajustes solicitados.',
       );
     }
-    return this.prisma.feedbackProcess.update({
-      where: { id },
-      data: {
-        observation: this.normalizeObservation(observation),
-        status: 'DRAFT',
-      },
-      select: processSelection,
+    return this.processes.update(id, {
+      observation: this.normalizeObservation(observation),
+      status: 'DRAFT',
     });
   }
 
   async delete(id: number) {
     await this.findOne(id);
-    await this.prisma.feedbackProcess.delete({ where: { id } });
+    await this.processes.delete(id);
     return { id };
   }
 
@@ -187,10 +146,14 @@ export class FeedbackProcessService {
     actorRole: string,
   ) {
     if (process.status !== 'DRAFT') {
-      throw new BadRequestException('Somente rascunhos podem ser editados ou enviados.');
+      throw new BadRequestException(
+        'Somente rascunhos podem ser editados ou enviados.',
+      );
     }
     if (actorRole === 'ADMIN_LEADER' && process.ownerId !== actorId) {
-      throw new ForbiddenException('Líderes só podem editar os próprios rascunhos.');
+      throw new ForbiddenException(
+        'Líderes só podem editar os próprios rascunhos.',
+      );
     }
   }
 
@@ -226,17 +189,17 @@ export class FeedbackProcessService {
     if (!Number.isInteger(value)) {
       throw new BadRequestException('Selecione um membro da equipe.');
     }
-    const participant = await this.prisma.user.findFirst({
-      where: { id: value as number, role: 'TEAM_MEMBER' },
-      select: { id: true },
-    });
+    const participant = await this.users.findTeamMember(value as number);
     if (!participant) {
       throw new BadRequestException('O participante selecionado não existe.');
     }
     return participant.id;
   }
 
-  private normalizeDate(value: string | Date | null | undefined, label: string) {
+  private normalizeDate(
+    value: string | Date | null | undefined,
+    label: string,
+  ) {
     if (value == null || value === '') return null;
     const date = value instanceof Date ? value : new Date(value);
     if (Number.isNaN(date.getTime())) {
@@ -247,10 +210,15 @@ export class FeedbackProcessService {
 
   private normalizeCriteria(value?: string[]): string[] {
     if (value == null) return [];
-    if (!Array.isArray(value) || value.some((criterion) => typeof criterion !== 'string')) {
+    if (
+      !Array.isArray(value) ||
+      value.some((criterion) => typeof criterion !== 'string')
+    ) {
       throw new BadRequestException('Os critérios devem ser textos.');
     }
-    return [...new Set(value.map((criterion) => criterion.trim()).filter(Boolean))];
+    return [
+      ...new Set(value.map((criterion) => criterion.trim()).filter(Boolean)),
+    ];
   }
 
   private validatePlan(
@@ -263,19 +231,27 @@ export class FeedbackProcessService {
     if (typeof objective !== 'string' || !objective.trim()) {
       throw new BadRequestException('O objetivo do processo é obrigatório.');
     }
-    if (status !== 'DRAFT' && status !== 'SENT_FOR_VALIDATION' && status !== 'PLANNED') {
+    if (!this.isKnownStatus(status)) {
       throw new BadRequestException('O status do processo é inválido.');
     }
     if (status !== 'DRAFT') {
       if (!startsAt || !endsAt) {
-        throw new BadRequestException('Defina o início e o término do processo.');
+        throw new BadRequestException(
+          'Defina o início e o término do processo.',
+        );
       }
       if (startsAt > endsAt) {
         throw new BadRequestException('O término deve ocorrer após o início.');
       }
       if (this.normalizeCriteria(criteria).length === 0) {
-        throw new BadRequestException('Adicione ao menos um critério de avaliação.');
+        throw new BadRequestException(
+          'Adicione ao menos um critério de avaliação.',
+        );
       }
     }
+  }
+
+  private isKnownStatus(status: string): boolean {
+    return ['DRAFT', 'SENT_FOR_VALIDATION', 'PLANNED'].includes(status);
   }
 }

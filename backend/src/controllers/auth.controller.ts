@@ -1,5 +1,4 @@
 import { Controller, Post, Body, UseGuards, Get, Delete, Param, Req } from '@nestjs/common';
-import type { User } from '@prisma/client';
 import { AuthService } from '../services/auth.service';
 import {
   CreateManagedUserDto,
@@ -12,7 +11,7 @@ import { ApiTags, ApiResponse } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { Roles, RolesGuard } from '../guards/roles.guard';
 
-interface AuthenticatedRequest { user: Pick<User, 'id'>; }
+interface AuthenticatedRequest { user: { id: number }; }
 
 @ApiTags('Auth')
 @Controller('auth')

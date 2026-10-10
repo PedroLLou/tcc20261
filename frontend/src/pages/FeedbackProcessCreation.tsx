@@ -4,8 +4,8 @@ import feedbackProcessService from '../services/feedbackProcessService';
 import type {
   FeedbackProcess,
   FeedbackProcessStatus,
-  TeamMember,
-} from '../services/feedbackProcessService';
+} from '../types/feedback-process';
+import type { TeamMember } from '../types/team-member';
 import '../styles/FeedbackProcessCreation.css';
 
 const getErrorMessage = (error: unknown): string => {

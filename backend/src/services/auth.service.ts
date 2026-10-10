@@ -7,8 +7,9 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import type { User } from '@prisma/client';
-import { PrismaService } from '../prisma.service';
+import { UserRepository } from '../repositories/user.repository';
+import { TeamRepository } from '../repositories/team.repository';
+import type { User } from '../models/user.model';
 import {
   CreateManagedUserDto,
   LoginDto,
@@ -25,7 +26,8 @@ interface JwtPayload {
 @Injectable()
 export class AuthService {
   constructor(
-    private prisma: PrismaService,
+    private readonly users: UserRepository,
+    private readonly teams: TeamRepository,
     private jwtService: JwtService,
   ) {}
 
@@ -33,15 +35,17 @@ export class AuthService {
     const { name, age, email, password, teamId } = registerDto;
 
     // Verificar se usuário já existe
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email },
-    });
+    const existingUser = await this.users.findByEmail(email);
 
     if (existingUser) {
       throw new ConflictException('Email já cadastrado');
     }
 
-    if (!Number.isInteger(Number(teamId)) || Number(teamId) < 1 || !await this.prisma.team.findUnique({ where: { id: Number(teamId) } })) {
+    if (
+      !Number.isInteger(Number(teamId)) ||
+      Number(teamId) < 1 ||
+      !(await this.teams.findById(Number(teamId)))
+    ) {
       throw new ConflictException('Equipe não encontrada');
     }
 
@@ -49,15 +53,13 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Criar usuário
-    const user = await this.prisma.user.create({
-      data: {
-        name,
-        age,
-        email,
-        password: hashedPassword,
-        role: 'TEAM_MEMBER',
-        teamId: Number(teamId),
-      },
+    const user = await this.users.create({
+      name,
+      age,
+      email,
+      password: hashedPassword,
+      role: 'TEAM_MEMBER',
+      team: { connect: { id: Number(teamId) } },
     });
 
     return this.generateAuthResponse(user);
@@ -65,87 +67,83 @@ export class AuthService {
 
   async createManagedUser(dto: CreateManagedUserDto) {
     const email = dto.email.trim();
-    const existingUser = await this.prisma.user.findUnique({ where: { email } });
+    const existingUser = await this.users.findByEmail(email);
     if (existingUser) {
       throw new ConflictException('Email já cadastrado');
     }
 
-    if (dto.role !== 'ADMIN_RH' && (!Number.isInteger(Number(dto.teamId)) || Number(dto.teamId) < 1 || !await this.prisma.team.findUnique({ where: { id: Number(dto.teamId) } }))) {
+    if (
+      dto.role !== 'ADMIN_RH' &&
+      (!Number.isInteger(Number(dto.teamId)) ||
+        Number(dto.teamId) < 1 ||
+        !(await this.teams.findById(Number(dto.teamId))))
+    ) {
       throw new ConflictException('Selecione uma equipe válida');
     }
 
     const password = await bcrypt.hash(dto.password, 10);
-    return this.prisma.user.create({
-      data: {
-        name: dto.name.trim(),
-        age: dto.age,
-        email,
-        password,
-        role: dto.role,
-        ...(dto.role === 'ADMIN_RH' ? {} : { teamId: Number(dto.teamId) }),
-      },
-      select: { id: true, name: true, age: true, email: true, role: true, teamId: true },
+    return this.users.createManaged({
+      name: dto.name.trim(),
+      age: dto.age,
+      email,
+      password,
+      role: dto.role,
+      ...(dto.role === 'ADMIN_RH'
+        ? {}
+        : { team: { connect: { id: Number(dto.teamId) } } }),
     });
   }
 
   listTeams() {
-    return this.prisma.team.findMany({
-      orderBy: { name: 'asc' },
-      include: { _count: { select: { users: true } } },
-    });
+    return this.teams.list();
   }
 
   listManagedUsers() {
-    return this.prisma.user.findMany({
-      orderBy: { name: 'asc' },
-      select: {
-        id: true, name: true, age: true, email: true, role: true, teamId: true,
-        team: { select: { id: true, name: true } },
-      },
-    });
+    return this.users.listManaged();
   }
 
   async deleteManagedUser(id: number, actorId: number) {
-    await this.prisma.$transaction(async (transaction) => {
-      const user = await transaction.user.findUnique({ where: { id } });
-      if (!user) throw new NotFoundException('Usuário não encontrado.');
-      if (user.id === actorId) throw new ConflictException('Não é possível excluir sua própria conta.');
-      if (user.role === 'ADMIN_RH') {
-        const adminCount = await transaction.user.count({ where: { role: 'ADMIN_RH' } });
-        if (adminCount <= 1) throw new ConflictException('O último administrador RH não pode ser excluído.');
-      }
-      await transaction.user.delete({ where: { id } });
-    }, { isolationLevel: 'Serializable' });
+    const result = await this.users.deleteManaged(id, actorId);
+    if (!result) throw new NotFoundException('Usuário não encontrado.');
+    if ('error' in result && result.error === 'SELF') {
+      throw new ConflictException('Não é possível excluir sua própria conta.');
+    }
+    if ('error' in result && result.error === 'LAST_ADMIN') {
+      throw new ConflictException(
+        'O último administrador RH não pode ser excluído.',
+      );
+    }
     return { message: 'Usuário excluído.' };
   }
 
   async deleteTeam(id: number) {
-    const team = await this.prisma.team.findUnique({ where: { id } });
+    const team = await this.teams.findById(id);
     if (!team) throw new NotFoundException('Equipe não encontrada.');
-    const assignedUsers = await this.prisma.user.count({ where: { teamId: id } });
+    const assignedUsers = await this.users.countByTeam(id);
     if (assignedUsers > 0) {
-      throw new ConflictException('Exclua os usuários vinculados à equipe antes de removê-la.');
+      throw new ConflictException(
+        'Exclua os usuários vinculados à equipe antes de removê-la.',
+      );
     }
-    await this.prisma.team.delete({ where: { id } });
+    await this.teams.delete(id);
     return { message: 'Equipe excluída.' };
   }
 
   async createTeam(name: string) {
     const normalizedName = name.trim();
-    if (!normalizedName) throw new BadRequestException('Informe o nome da equipe');
-    if (await this.prisma.team.findUnique({ where: { name: normalizedName } })) {
+    if (!normalizedName)
+      throw new BadRequestException('Informe o nome da equipe');
+    if (await this.teams.findByName(normalizedName)) {
       throw new ConflictException('Já existe uma equipe com esse nome');
     }
-    return this.prisma.team.create({ data: { name: normalizedName } });
+    return this.teams.create(normalizedName);
   }
 
   async login(loginDto: LoginDto): Promise<AuthResponseDto> {
     const { email, password } = loginDto;
 
     // Buscar usuário
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-    });
+    const user = await this.users.findByEmail(email);
 
     if (!user) {
       throw new UnauthorizedException('Credenciais inválidas');
@@ -162,9 +160,7 @@ export class AuthService {
   }
 
   async validateToken(payload: JwtPayload): Promise<User> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: payload.sub },
-    });
+    const user = await this.users.findById(payload.sub);
 
     if (!user) {
       throw new UnauthorizedException('Usuário não encontrado');

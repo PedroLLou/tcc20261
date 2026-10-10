@@ -5,7 +5,7 @@ import React, {
   useEffect,
 } from 'react';
 import authService from '../services/authService';
-import type { User } from '../services/authService';
+import type { User } from '../types/user';
 
 interface AuthContextType {
   user: User | null;

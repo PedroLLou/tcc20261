@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import authService from '../services/authService';
-import type { Team, ManagedUser, CreateManagedUserRequest } from '../services/authService';
+import type { ManagedUser } from '../types/managed-user';
+import type { Team } from '../types/team';
+import type { UserRole } from '../types/user';
+import type { CreateManagedUserRequest } from '../services/authService';
 import '../styles/FeedbackProcessCreation.css';
 
 interface Props { onBack: () => void; currentUserId: number; }
@@ -8,7 +11,7 @@ interface Props { onBack: () => void; currentUserId: number; }
 const ManagedUserCreation: React.FC<Props> = ({ onBack, currentUserId }) => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [users, setUsers] = useState<ManagedUser[]>([]);
-  const [form, setForm] = useState({ name: '', age: '', email: '', password: '', role: 'ADMIN_LEADER' as CreateManagedUserRequest['role'], teamId: '' });
+  const [form, setForm] = useState({ name: '', age: '', email: '', password: '', role: 'ADMIN_LEADER' as UserRole, teamId: '' });
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [saving, setSaving] = useState(false);

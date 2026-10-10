@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { AuditOperation, AuditSource, Prisma } from '@prisma/client';
-import { PrismaService } from '../prisma.service';
+import { AuditLogRepository } from '../repositories/audit-log.repository';
 import {
   AuditLogPageDto,
   AuditLogQueryDto,
@@ -16,7 +16,7 @@ const MAX_PAGE_SIZE = 100;
  */
 @Injectable()
 export class AuditLogService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly auditLogs: AuditLogRepository) {}
 
   async list(query: AuditLogQueryDto): Promise<AuditLogPageDto> {
     const where = this.buildFilter(query);
@@ -26,15 +26,11 @@ export class AuditLogService {
       MAX_PAGE_SIZE,
     );
 
-    const [total, logs] = await Promise.all([
-      this.prisma.auditLog.count({ where }),
-      this.prisma.auditLog.findMany({
-        where,
-        orderBy: { id: 'desc' },
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-      }),
-    ]);
+    const [total, logs] = await this.auditLogs.list(
+      where,
+      (page - 1) * pageSize,
+      pageSize,
+    );
 
     return {
       page,

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import authService from '../services/authService';
-import type { Team } from '../services/authService';
+import type { Team } from '../types/team';
 import '../styles/Login.css';
 
 const Login: React.FC = () => {

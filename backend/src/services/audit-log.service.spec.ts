@@ -1,16 +1,13 @@
 /* eslint-disable max-lines-per-function */
 import { BadRequestException } from '@nestjs/common';
 import { AuditLogService } from './audit-log.service';
-import { PrismaService } from '../prisma.service';
+import { AuditLogRepository } from '../repositories/audit-log.repository';
 
 describe('AuditLogService', () => {
   let service: AuditLogService;
 
-  const prismaMock = {
-    auditLog: {
-      count: jest.fn(),
-      findMany: jest.fn(),
-    },
+  const auditLogsMock = {
+    list: jest.fn(),
   };
 
   const storedLog = {
@@ -32,26 +29,26 @@ describe('AuditLogService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new AuditLogService(prismaMock as unknown as PrismaService);
-    prismaMock.auditLog.count.mockResolvedValue(1);
-    prismaMock.auditLog.findMany.mockResolvedValue([storedLog]);
+    service = new AuditLogService(
+      auditLogsMock as unknown as AuditLogRepository,
+    );
+    auditLogsMock.list.mockResolvedValue([1, [storedLog]]);
   });
 
   it('deve listar com paginação padrão e converter o id da transação para texto', async () => {
     const result = await service.list({});
 
-    expect(prismaMock.auditLog.findMany).toHaveBeenCalledWith({
-      where: {
+    expect(auditLogsMock.list).toHaveBeenCalledWith(
+      {
         tableName: undefined,
         recordId: undefined,
         actorId: undefined,
         operation: undefined,
         source: undefined,
       },
-      orderBy: { id: 'desc' },
-      skip: 0,
-      take: 20,
-    });
+      0,
+      20,
+    );
     expect(result).toEqual({
       page: 1,
       pageSize: 20,
@@ -78,13 +75,7 @@ describe('AuditLogService', () => {
       operation: 'DELETE',
       source: 'APPLICATION',
     };
-    expect(prismaMock.auditLog.count).toHaveBeenCalledWith({ where });
-    expect(prismaMock.auditLog.findMany).toHaveBeenCalledWith({
-      where,
-      orderBy: { id: 'desc' },
-      skip: 200,
-      take: 100,
-    });
+    expect(auditLogsMock.list).toHaveBeenCalledWith(where, 200, 100);
   });
 
   it.each([
@@ -96,6 +87,6 @@ describe('AuditLogService', () => {
   ])('deve rejeitar o filtro inválido %j', async (query, field) => {
     await expect(service.list(query)).rejects.toThrow(BadRequestException);
     await expect(service.list(query)).rejects.toThrow(field);
-    expect(prismaMock.auditLog.findMany).not.toHaveBeenCalled();
+    expect(auditLogsMock.list).not.toHaveBeenCalled();
   });
 });

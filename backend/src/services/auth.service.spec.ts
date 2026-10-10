@@ -3,7 +3,8 @@ import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
-import { PrismaService } from '../prisma.service';
+import { UserRepository } from '../repositories/user.repository';
+import { TeamRepository } from '../repositories/team.repository';
 
 jest.mock('bcrypt', () => ({
   hash: jest.fn(),
@@ -13,12 +14,14 @@ jest.mock('bcrypt', () => ({
 describe('AuthService', () => {
   let authService: AuthService;
 
-  const prismaMock = {
-    team: { findUnique: jest.fn() },
-    user: {
-      findUnique: jest.fn(),
-      create: jest.fn(),
-    },
+  const usersMock = {
+    findByEmail: jest.fn(),
+    findById: jest.fn(),
+    create: jest.fn(),
+  };
+
+  const teamsMock = {
+    findById: jest.fn(),
   };
 
   const jwtServiceMock = {
@@ -29,7 +32,8 @@ describe('AuthService', () => {
     jest.clearAllMocks();
 
     authService = new AuthService(
-      prismaMock as unknown as PrismaService,
+      usersMock as unknown as UserRepository,
+      teamsMock as unknown as TeamRepository,
       jwtServiceMock as unknown as JwtService,
     );
   });
@@ -53,30 +57,26 @@ describe('AuthService', () => {
         role: 'TEAM_MEMBER',
       };
 
-      prismaMock.user.findUnique.mockResolvedValue(null);
-      prismaMock.team.findUnique.mockResolvedValue({ id: 7, name: 'Produto' });
-      prismaMock.user.create.mockResolvedValue(createdUser);
+      usersMock.findByEmail.mockResolvedValue(null);
+      teamsMock.findById.mockResolvedValue({ id: 7, name: 'Produto' });
+      usersMock.create.mockResolvedValue(createdUser);
       jwtServiceMock.sign.mockReturnValue('token-teste');
 
       (bcrypt.hash as jest.Mock).mockResolvedValue('senha-hash');
 
       const result = await authService.register(registerDto);
 
-      expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
-        where: { email: 'leo@email.com' },
-      });
+      expect(usersMock.findByEmail).toHaveBeenCalledWith('leo@email.com');
 
       expect(bcrypt.hash).toHaveBeenCalledWith('123456', 10);
 
-      expect(prismaMock.user.create).toHaveBeenCalledWith({
-        data: {
-          name: 'Leonardo',
-          age: 25,
-          email: 'leo@email.com',
-          password: 'senha-hash',
-          role: 'TEAM_MEMBER',
-          teamId: 7,
-        },
+      expect(usersMock.create).toHaveBeenCalledWith({
+        name: 'Leonardo',
+        age: 25,
+        email: 'leo@email.com',
+        password: 'senha-hash',
+        role: 'TEAM_MEMBER',
+        team: { connect: { id: 7 } },
       });
 
       expect(jwtServiceMock.sign).toHaveBeenCalledWith({
@@ -95,7 +95,7 @@ describe('AuthService', () => {
     });
 
     it('deve rejeitar um e-mail já cadastrado', async () => {
-      prismaMock.user.findUnique.mockResolvedValue({
+      usersMock.findByEmail.mockResolvedValue({
         id: 1,
         email: 'leo@email.com',
       });
@@ -110,7 +110,7 @@ describe('AuthService', () => {
         }),
       ).rejects.toThrow(ConflictException);
 
-      expect(prismaMock.user.create).not.toHaveBeenCalled();
+      expect(usersMock.create).not.toHaveBeenCalled();
     });
   });
 
@@ -125,7 +125,7 @@ describe('AuthService', () => {
         role: 'TEAM_MEMBER',
       };
 
-      prismaMock.user.findUnique.mockResolvedValue(user);
+      usersMock.findByEmail.mockResolvedValue(user);
       jwtServiceMock.sign.mockReturnValue('token-teste');
 
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
@@ -135,9 +135,7 @@ describe('AuthService', () => {
         password: '123456',
       });
 
-      expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
-        where: { email: 'leo@email.com' },
-      });
+      expect(usersMock.findByEmail).toHaveBeenCalledWith('leo@email.com');
 
       expect(bcrypt.compare).toHaveBeenCalledWith('123456', 'senha-hash');
 
@@ -151,7 +149,7 @@ describe('AuthService', () => {
     });
 
     it('deve rejeitar login quando o usuário não existe', async () => {
-      prismaMock.user.findUnique.mockResolvedValue(null);
+      usersMock.findByEmail.mockResolvedValue(null);
 
       await expect(
         authService.login({
@@ -162,7 +160,7 @@ describe('AuthService', () => {
     });
 
     it('deve rejeitar login com senha inválida', async () => {
-      prismaMock.user.findUnique.mockResolvedValue({
+      usersMock.findByEmail.mockResolvedValue({
         id: 1,
         name: 'Leonardo',
         age: 25,
@@ -193,7 +191,7 @@ describe('AuthService', () => {
         role: 'TEAM_MEMBER',
       };
 
-      prismaMock.user.findUnique.mockResolvedValue(user);
+      usersMock.findById.mockResolvedValue(user);
 
       const result = await authService.validateToken({
         sub: 1,
@@ -201,15 +199,13 @@ describe('AuthService', () => {
         role: 'TEAM_MEMBER',
       });
 
-      expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
-        where: { id: 1 },
-      });
+      expect(usersMock.findById).toHaveBeenCalledWith(1);
 
       expect(result).toEqual(user);
     });
 
     it('deve rejeitar token quando o usuário não existir', async () => {
-      prismaMock.user.findUnique.mockResolvedValue(null);
+      usersMock.findById.mockResolvedValue(null);
 
       await expect(
         authService.validateToken({

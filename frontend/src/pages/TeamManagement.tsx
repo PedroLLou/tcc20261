@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import authService from '../services/authService';
-import type { Team } from '../services/authService';
+import type { Team } from '../types/team';
 import '../styles/FeedbackProcessCreation.css';
 
 interface Props { onBack: () => void; }

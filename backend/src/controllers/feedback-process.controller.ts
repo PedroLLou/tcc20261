@@ -11,7 +11,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { Request } from 'express';
-import type { User } from '@prisma/client';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { Roles, RolesGuard } from '../guards/roles.guard';
@@ -22,7 +21,9 @@ import {
 } from '../dto/feedback-process.dto';
 import { FeedbackProcessService } from '../services/feedback-process.service';
 
-type AuthenticatedRequest = Request & { user: User };
+type AuthenticatedRequest = Request & {
+  user: { id: number; role: string };
+};
 
 @ApiTags('Feedback processes')
 @ApiBearerAuth()

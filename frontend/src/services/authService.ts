@@ -1,12 +1,10 @@
 import api from './api';
-
-export interface User {
-  id: number;
-  email: string;
-  name: string;
-  role: 'ADMIN_LEADER' | 'TEAM_MEMBER' | 'ADMIN_RH';
-  access_token: string;
-}
+import type { ManagedUser } from '../types/managed-user';
+import type { Team } from '../types/team';
+import type { User } from '../types/user';
+export type { ManagedUser } from '../types/managed-user';
+export type { Team } from '../types/team';
+export type { User } from '../types/user';
 
 export interface LoginRequest {
   email: string;
@@ -21,32 +19,20 @@ export interface RegisterRequest {
   teamId: number;
 }
 
-export interface Team { id: number; name: string; _count?: { users: number }; }
-export interface ManagedUser {
-  id: number;
-  name: string;
-  age: number;
-  email: string;
-  role: User['role'];
-  teamId: number | null;
-  team: { id: number; name: string } | null;
-}
-
-export interface CreateManagedUserRequest extends Omit<RegisterRequest, 'teamId'> {
+export interface CreateManagedUserRequest
+  extends Omit<RegisterRequest, 'teamId'> {
   role: User['role'];
   teamId: number | null;
 }
 
 class AuthService {
   private readonly api = api;
-
   private readonly TOKEN_KEY = 'auth_token';
   private readonly USER_KEY = 'auth_user';
 
   setToken(token: string): void {
     localStorage.setItem(this.TOKEN_KEY, token);
-
-    this.api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    this.api.defaults.headers.common.Authorization = `Bearer ${token}`;
   }
 
   getToken(): string | null {
@@ -59,10 +45,7 @@ class AuthService {
 
   getUser(): User | null {
     const user = localStorage.getItem(this.USER_KEY);
-
-    if (!user) {
-      return null;
-    }
+    if (!user) return null;
 
     try {
       return JSON.parse(user) as User;
@@ -77,30 +60,18 @@ class AuthService {
   }
 
   async login(credentials: LoginRequest): Promise<User> {
-    const response = await this.api.post<User>(
-      '/auth/login',
-      credentials,
-    );
-
+    const response = await this.api.post<User>('/auth/login', credentials);
     const user = response.data;
-
     this.setToken(user.access_token);
     this.setUser(user);
-
     return user;
   }
 
   async register(data: RegisterRequest): Promise<User> {
-    const response = await this.api.post<User>(
-      '/auth/register',
-      data,
-    );
-
+    const response = await this.api.post<User>('/auth/register', data);
     const user = response.data;
-
     this.setToken(user.access_token);
     this.setUser(user);
-
     return user;
   }
 
@@ -140,15 +111,13 @@ class AuthService {
   logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
-
-    delete this.api.defaults.headers.common['Authorization'];
+    delete this.api.defaults.headers.common.Authorization;
   }
 
   initializeAuth(): void {
     const token = this.getToken();
-
     if (token) {
-      this.api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      this.api.defaults.headers.common.Authorization = `Bearer ${token}`;
     }
   }
 }

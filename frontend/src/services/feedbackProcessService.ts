@@ -1,42 +1,16 @@
 import api from './api';
-
-export type FeedbackProcessStatus =
-  | 'DRAFT'
-  | 'SENT_FOR_VALIDATION'
-  | 'PLANNED';
-
-export interface FeedbackProcessFields {
-  description?: string;
-  objective: string;
-  participantId: number;
-  startsAt?: string | null;
-  endsAt?: string | null;
-  criteria?: string[];
-}
+import type {
+  FeedbackProcess,
+  FeedbackProcessFields,
+} from '../types/feedback-process';
+import type { TeamMember } from '../types/team-member';
+export type {
+  FeedbackProcess,
+  FeedbackProcessFields,
+  FeedbackProcessStatus,
+} from '../types/feedback-process';
 
 export type CreateFeedbackProcessRequest = FeedbackProcessFields;
-
-export interface TeamMember {
-  id: number;
-  name: string;
-  email: string;
-}
-
-export interface FeedbackProcess {
-  id: number;
-  description: string | null;
-  objective: string;
-  startsAt: string | null;
-  endsAt: string | null;
-  criteria: string[];
-  observation: string | null;
-  status: FeedbackProcessStatus;
-  ownerId: number;
-  participantId: number | null;
-  participant: TeamMember | null;
-  createdAt: string;
-  updatedAt: string;
-}
 
 class FeedbackProcessService {
   async create(data: CreateFeedbackProcessRequest): Promise<FeedbackProcess> {
