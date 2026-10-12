@@ -2,11 +2,30 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import 'dotenv/config';
+import { Logger, PinoLogger } from 'nestjs-pino';
+import { deploymentConfig } from './observability/config';
+import {
+  requestTelemetry,
+  startProcessMetrics,
+} from './observability/http-metrics';
+import {
+  closeApplication,
+  shutdownWithinDeadline,
+} from './observability/shutdown';
+import { shutdownTelemetry } from './observability/instrumentation';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  app.enableCors();
+  const { port, origins } = deploymentConfig();
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+    abortOnError: false,
+  });
+  app.useLogger(app.get(Logger));
+  app.use(requestTelemetry(await app.resolve(PinoLogger)));
+  app.enableCors({
+    origin: origins.length ? origins : false,
+    exposedHeaders: ['X-Request-Id'],
+  });
   app.setGlobalPrefix('api/v1');
   app.useGlobalPipes(
     new ValidationPipe({
@@ -24,7 +43,27 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  const port = Number(process.env.PORT) || 3001;
-  await app.listen(port);
+  const stopMetrics = startProcessMetrics();
+  let shuttingDown = false;
+  const shutdown = () => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    stopMetrics();
+    void shutdownWithinDeadline(
+      () => closeApplication(app),
+      shutdownTelemetry,
+      5000,
+    ).then((success) => process.exit(success ? 0 : 1));
+  };
+  process.once('SIGTERM', shutdown);
+  process.once('SIGINT', shutdown);
+  await app.listen(port, '0.0.0.0');
 }
-void bootstrap();
+void bootstrap().catch(() => {
+  process.stderr.write('{"level":50,"code":"STARTUP_FAILED"}\n');
+  void shutdownWithinDeadline(
+    () => Promise.resolve(),
+    shutdownTelemetry,
+    5000,
+  ).then(() => process.exit(1));
+});

@@ -1,4 +1,6 @@
-## Estrutura do Projeto
+# Sistema de gestão de feedbacks
+
+## Estrutura do projeto
 
 Este repositório está organizado como um monorepo, contendo:
 
@@ -7,7 +9,7 @@ Este repositório está organizado como um monorepo, contendo:
 
 ---
 
-## Como rodar o projeto
+## Rodar o projeto
 
 ### Containers com Podman ou Docker
 
@@ -19,7 +21,18 @@ podman compose config >/dev/null
 podman compose up -d --build
 ```
 
-Abrir http://127.0.0.1:8080. O helper exige Node 24 ou superior e cria `.env` sem exibir segredos. Os builds e as verificações HTTP foram validados com Podman. O guia inclui os comandos para testar login, autorização e persistência em um projeto isolado.
+Abra http://127.0.0.1:8080. O helper exige Node 24 ou superior, cria `.env` privado sem exibir segredos e recusa sobrescrever um arquivo existente.
+
+Em 12/10/2026, os containers finais passaram login, permissões, feedback aprovado, auditoria e persistência após recriação. A API executa em Distroless com Node 24. O navegador passou 22 verificações funcionais, de teclado e mobile, sem erros JavaScript nos estados exercitados.
+
+Para repetir a validação em projetos isolados:
+
+```bash
+bash scripts/verify-containers.sh
+node scripts/verify-observability.mjs
+```
+
+O mesmo guia reúne [observabilidade](docs/containers.md#observabilidade), [exportação Honeycomb](docs/containers.md#exportar-para-honeycomb) e [deploy no Render com Neon](docs/containers.md#render-e-neon). Traces e as seis métricas nativas foram recuperados no Honeycomb TCC/test com tráfego sintético. Os dois containers gratuitos no Render estão configurados; implantação, banco Neon e HTTP público continuam pendentes.
 
 ### Frontend (React + TypeScript)
 

@@ -1,4 +1,5 @@
-ARG NODE_IMAGE=docker.io/library/node:24-bookworm-slim
+ARG NODE_IMAGE=docker.io/library/node:24-trixie-slim
+ARG RUNTIME_IMAGE=gcr.io/distroless/nodejs24-debian13:nonroot
 FROM ${NODE_IMAGE} AS base
 WORKDIR /app
 RUN apt-get update \
@@ -19,18 +20,21 @@ COPY src ./src
 CMD ["npm", "test", "--", "--runInBand"]
 
 FROM test AS build
-RUN npm run build && test -f dist/src/main.js
+RUN npm run build && test -f dist/src/main.js && test -f dist/src/observability/instrumentation.js
 
 FROM dependencies AS production-dependencies
 RUN npm prune --omit=dev --omit=optional --ignore-scripts --no-audit --no-fund \
+    && find node_modules -type f \( -name '*.map' -o -name '*.d.ts' -o -name '*.d.mts' -o -name '*.d.cts' \) -delete \
     && test ! -d node_modules/prisma \
     && test ! -d node_modules/typescript \
     && node -e "require('dotenv/config'); require('@prisma/client'); require('bcrypt')"
 
 FROM dependencies AS migration-dependencies
-# Manter o CLI só na imagem de migração. A versão vem do lockfile existente.
-RUN npm pkg delete devDependencies.prisma \
-    && npm pkg set 'dependencies.prisma=^6.12.0' \
+# O migrador precisa só do CLI e dotenv, nas versões já instaladas pelo lockfile.
+RUN prisma_version=$(node -p "require('./node_modules/prisma/package.json').version") \
+    && dotenv_version=$(node -p "require('./node_modules/dotenv/package.json').version") \
+    && npm pkg delete dependencies devDependencies \
+    && npm pkg set "dependencies.prisma=$prisma_version" "dependencies.dotenv=$dotenv_version" \
     && npm prune --omit=dev --omit=optional --ignore-scripts --offline --no-audit --no-fund \
     && test -x node_modules/.bin/prisma
 
@@ -42,10 +46,25 @@ COPY --chown=node:node prisma.config.ts package.json package-lock.json ./
 USER node
 CMD ["./node_modules/.bin/prisma", "migrate", "deploy"]
 
-FROM base AS runtime
+FROM base AS runtime-slim
 ENV NODE_ENV=production
 COPY --from=production-dependencies --chown=node:node /app/node_modules ./node_modules
 COPY --from=build --chown=node:node /app/dist ./dist
 USER node
 EXPOSE 3001
-CMD ["node", "dist/src/main.js"]
+CMD ["node", "--require", "dotenv/config", "--require", "./dist/src/observability/instrumentation.js", "dist/src/main.js"]
+
+FROM base AS runtime-libraries
+# Copiar o arquivo real, sem fixar a arquitetura no caminho multiarch Debian.
+RUN mkdir /runtime-libs && cp /usr/lib/*-linux-gnu/libz.so.1 /runtime-libs/libz.so.1
+
+FROM ${RUNTIME_IMAGE} AS runtime
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PATH="/nodejs/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+COPY --from=runtime-libraries /runtime-libs/libz.so.1 /usr/lib/libz.so.1
+COPY --from=production-dependencies --chown=65532:65532 /app/node_modules ./node_modules
+COPY --from=build --chown=65532:65532 /app/dist ./dist
+USER 65532:65532
+EXPOSE 3001
+CMD ["--require", "dotenv/config", "--require", "./dist/src/observability/instrumentation.js", "dist/src/main.js"]
