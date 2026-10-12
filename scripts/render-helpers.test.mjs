@@ -72,6 +72,7 @@ test('rejects a symlink without reading private configuration', { skip: process.
   const result = execute('render-migrate.mjs', path);
   assert.notEqual(result.status, 0);
   assert.equal(result.error, undefined);
+  assert.match(result.stderr, /Configuração privada não encontrada/);
   assert.ok(!result.stderr.includes('CONFIG_SECRET_CANARY'));
 });
 
