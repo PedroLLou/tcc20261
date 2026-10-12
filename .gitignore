@@ -31,4 +31,3 @@ frontend/node_modules/
 # NestJS
 backend/dist/
 backend/node_modules/
-backend/prisma/migrations/migration_lock.toml
