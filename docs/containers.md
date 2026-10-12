@@ -247,7 +247,7 @@ O gerador cria `.env.render` ignorado, com modo `0600`, JWT e senha de administr
 
 Use conectores autenticados ou preencha as chaves administrativas privadas `RENDER_API_KEY`, `RENDER_WORKSPACE_ID` e, para criar um projeto por API, `NEON_API_KEY`. Um banco Neon existente exige somente `DATABASE_URL`. Nunca publique esse arquivo, a saída interpolada de Compose ou as credenciais.
 
-Crie o projeto Neon Free em AWS Virginia, `aws-us-east-1`, PostgreSQL 17. Em **Connect**, copie a URL direta com `sslmode=require`, sem `-pooler`, para `DATABASE_URL`. Use dados sintéticos. Defina os nomes únicos dos serviços, `API_URL` e `FRONTEND_URL` como origens HTTPS sem caminhos e `CORS_ORIGINS` com a origem do frontend.
+Use o projeto Neon existente e crie uma branch isolada para validar migrations e deploy. Preserve a região e a versão do banco existente; ao criar um projeto novo, prefira a região da API para reduzir a latência de rede. Em **Connect**, copie a URL direta com `sslmode=require`, sem `-pooler`, para `DATABASE_URL`. Use dados sintéticos. No plano Free, mantenha o intervalo de suspensão gerenciado pelo Neon. Defina os nomes únicos dos serviços, `API_URL` e `FRONTEND_URL` como origens HTTPS sem caminhos e `CORS_ORIGINS` com a origem do frontend.
 
 ### Migrar e publicar
 
@@ -306,9 +306,11 @@ A ingestão remota também foi verificada por consulta no Honeycomb, equipe `TCC
 
 Após incluir o limite zero, a consulta nativa do histograma estimou aproximadamente `0.005` segundo para o cenário medido. Esse valor vem da interpolação dos buckets e não é um benchmark de latência. O ensaio remoto usou amostragem de 100%; a operação permanece em 10%.
 
-Consulte a [correlação das seis requisições](https://ui.honeycomb.io/tcc/environments/test/datasets/tcc20261-api/usage/result/yX16oqVabu6), o [trace de feedback](https://ui.honeycomb.io/tcc/environments/test/result/mJZwjui4TQa/trace?trace_id=a0cf24da1420b7319b5a065fa9928c4d) e as [métricas de processo](https://ui.honeycomb.io/tcc/environments/test/datasets/metrics/result/BLv6bibxYUM). Os links exigem acesso à conta Honeycomb.
+As consultas, os traces e a correlação com stdout foram preservados como evidências locais. Links específicos da conta Honeycomb permanecem fora desta documentação pública.
 
-A configuração de dois containers gratuitos no Render está pronta, mas autenticação no Render, criação do banco Neon e HTTP público continuam pendentes. O OAuth do Neon foi concluído; o acesso operacional ainda estava sendo resolvido nesta etapa. A validação remota no Honeycomb comprova a ingestão a partir do host local, sem comprovar deploy no Render.
+Em 12/10/2026, as 12 migrations foram aplicadas e verificadas em uma branch isolada de um projeto Neon existente, com PostgreSQL 18 na região AWS São Paulo. Os containers passaram por readiness, assets e navegação SPA, proxy, login, permissões, criação e aprovação de feedback, auditoria com ator e persistência após reiniciar a API. A branch original foi preservada. Um trace dessa execução foi recuperado no Honeycomb com os mesmos IDs do log de conclusão; as métricas dessa release também foram recebidas.
+
+O Blueprint de dois containers gratuitos no Render está preparado. A conexão da conta Render, a implantação e o HTTP público continuam pendentes. Os testes acima executaram containers no host local conectados ao Neon e não comprovam deploy no Render. O benchmark de overhead está em execução; os resultados de ingestão e tamanho de imagem não medem ganho de desempenho.
 
 ## Referências consultadas
 

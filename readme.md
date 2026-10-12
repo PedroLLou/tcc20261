@@ -32,7 +32,7 @@ bash scripts/verify-containers.sh
 node scripts/verify-observability.mjs
 ```
 
-O mesmo guia reúne [observabilidade](docs/containers.md#observabilidade), [exportação Honeycomb](docs/containers.md#exportar-para-honeycomb) e [deploy no Render com Neon](docs/containers.md#render-e-neon). Traces e as seis métricas nativas foram recuperados no Honeycomb TCC/test com tráfego sintético. Os dois containers gratuitos no Render estão configurados; implantação, banco Neon e HTTP público continuam pendentes.
+O mesmo guia reúne [observabilidade](docs/containers.md#observabilidade), [exportação Honeycomb](docs/containers.md#exportar-para-honeycomb) e [deploy no Render com Neon](docs/containers.md#render-e-neon). Traces e as seis métricas nativas foram recuperados no Honeycomb TCC/test com tráfego sintético. Os containers também passaram com PostgreSQL 18 no Neon, incluindo migrations, feedback, auditoria e persistência após reiniciar a API. O Blueprint de dois containers gratuitos no Render está preparado; implantação e HTTP público continuam pendentes.
 
 ### Frontend (React + TypeScript)
 
