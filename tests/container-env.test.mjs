@@ -29,6 +29,7 @@ test('generates private credentials and a matching database URL without printing
   assert.equal(decodeURIComponent(url.password), env.POSTGRES_PASSWORD);
   assert.equal(url.pathname, `/${env.POSTGRES_DB}`);
   assert.equal(url.searchParams.get('schema'), 'public');
+  assert.equal(env.DIRECT_URL, env.DATABASE_URL);
   assert.equal(env.DEFAULT_ADMIN_RH_EMAIL, 'admin@example.invalid');
   for (const key of ['JWT_SECRET', 'POSTGRES_PASSWORD', 'DEFAULT_ADMIN_RH_PASSWORD']) {
     assert.match(env[key], /^[a-f0-9]{64}$/);
