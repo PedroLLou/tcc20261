@@ -75,6 +75,8 @@ podman compose up -d
 podman compose ps
 ```
 
+> **`.env` gerado antes de 12/10/2026:** o container de migração passou a exigir `DIRECT_URL` (conexão do dono do banco, usada pelo Prisma Migrate). No banco local do Compose, acrescente ao `.env` a linha `DIRECT_URL=` com o mesmo valor da `DATABASE_URL`. Ver [`docs/banco-de-dados.md`](banco-de-dados.md).
+
 O helper cria `.env` com permissão `0600`, três segredos aleatórios independentes e URL de banco consistente. Ele recusa sobrescrever um arquivo existente. `.env.example` documenta as variáveis sem incluir senhas funcionais. Compose recusa segredos vazios. Inspecionar as credenciais localmente para fazer login; não publicar o arquivo nem a saída completa de `compose config`, que contém os segredos interpolados.
 
 Abrir `http://127.0.0.1:8080`. O administrador sintético inicial usa `DEFAULT_ADMIN_RH_EMAIL` e `DEFAULT_ADMIN_RH_PASSWORD` de `.env`. O projeto cria esse administrador apenas se ainda não houver um usuário `ADMIN_RH`; mudar a senha no arquivo após o primeiro início não redefine a senha armazenada.
