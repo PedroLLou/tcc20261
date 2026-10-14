@@ -1,17 +1,17 @@
 .feedback-create-panel {
-  max-width: 760px;
+  max-width: 900px;
   margin: 28px auto 0;
   padding: 28px 32px 32px;
   background: #fff;
   border: 1px solid #e3e5ec;
-  border-top: 3px solid #667eea;
+  border-top: 3px solid var(--color-primary);
   border-radius: 8px;
   box-shadow: 0 3px 14px rgba(25, 30, 50, 0.06);
 }
 
 .feedback-create-eyebrow {
   margin: 0 0 8px;
-  color: #6672bc;
+  color: var(--color-primary);
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
@@ -51,6 +51,7 @@
 .feedback-create-field select {
   box-sizing: border-box;
   width: 100%;
+  min-height: var(--field-height);
   padding: 11px 12px;
   border: 1px solid #cfd2dc;
   border-radius: 5px;
@@ -67,8 +68,8 @@
 .feedback-create-field input:focus,
 .feedback-create-field textarea:focus,
 .feedback-create-field select:focus {
-  border-color: #6672bc;
-  outline: 3px solid rgba(102, 114, 188, 0.16);
+  border-color: var(--color-primary);
+  outline: 3px solid var(--color-primary-ring);
 }
 
 .feedback-create-hint {
@@ -82,7 +83,7 @@
   padding: 0 18px;
   border: 0;
   border-radius: 5px;
-  background: #4d5fa8;
+  background: var(--color-primary);
   color: #fff;
   cursor: pointer;
   font: inherit;
@@ -90,7 +91,7 @@
 }
 
 .feedback-create-button:hover:not(:disabled) {
-  background: #3f508f;
+  background: var(--color-primary-dark);
 }
 
 .feedback-create-button:disabled {
@@ -250,20 +251,8 @@
 }
 .management-create-panel {
   position: relative;
+  max-width: none;
   margin-top: 0;
-}
-
-.management-back-button {
-  float: right;
-  min-height: 38px;
-  padding: 0 13px;
-  border: 1px solid #cfd2dc;
-  border-radius: 5px;
-  background: #fff;
-  color: #394a44;
-  cursor: pointer;
-  font: inherit;
-  font-weight: 600;
 }
 
 .management-form-grid {
