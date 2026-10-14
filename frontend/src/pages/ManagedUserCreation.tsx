@@ -6,9 +6,9 @@ import type { UserRole } from '../types/user';
 import type { CreateManagedUserRequest } from '../services/authService';
 import '../styles/FeedbackProcessCreation.css';
 
-interface Props { onBack: () => void; currentUserId: number; }
+interface Props { currentUserId: number; }
 
-const ManagedUserCreation: React.FC<Props> = ({ onBack, currentUserId }) => {
+const ManagedUserCreation: React.FC<Props> = ({ currentUserId }) => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [users, setUsers] = useState<ManagedUser[]>([]);
   const [form, setForm] = useState({ name: '', age: '', email: '', password: '', role: 'ADMIN_LEADER' as UserRole, teamId: '' });
@@ -61,7 +61,6 @@ const ManagedUserCreation: React.FC<Props> = ({ onBack, currentUserId }) => {
 
   return (
     <section className="feedback-create-panel management-create-panel">
-      <button className="management-back-button" type="button" onClick={onBack}>Voltar ao painel</button>
       <p className="feedback-create-eyebrow">Acessos</p>
       <h2>Criar usuário</h2>
       <p className="feedback-create-intro">Cadastre um novo membro, líder de equipe ou administrador de RH.</p>
