@@ -81,6 +81,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         <button
           type="button"
           className="user-menu-button"
+          aria-label={userName ? `Menu do usuário ${userName}` : 'Menu do usuário'}
           aria-haspopup="menu"
           aria-expanded={isUserMenuOpen}
           onClick={() => setIsUserMenuOpen((open) => !open)}

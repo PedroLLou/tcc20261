@@ -40,6 +40,12 @@ describe('AppHeader', () => {
     expect(userButton).toHaveTextContent('Líder de Equipe');
   });
 
+  it('deve identificar o botão do usuário pelo nome, sem depender do texto visível', () => {
+    renderHeader();
+
+    expect(screen.getByRole('button', { name: 'Menu do usuário Maria Souza' })).toBeInTheDocument();
+  });
+
   it('deve oferecer fechar o menu lateral quando ele está aberto', () => {
     renderHeader(true);
 
