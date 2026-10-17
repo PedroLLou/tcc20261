@@ -6,6 +6,9 @@ import ManagedUserCreation from './ManagedUserCreation';
 import TeamManagement from './TeamManagement';
 import type { FeedbackProcess } from '../types/feedback-process';
 import { ProcessPanel, ReportsPanel } from '../components/DashboardPanels';
+import AppHeader from '../components/AppHeader';
+import SideNav from '../components/SideNav';
+import type { SideNavItem } from '../components/SideNav';
 import '../styles/Dashboard.css';
 
 const Dashboard: React.FC = () => {
@@ -15,6 +18,7 @@ const Dashboard: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [selectedProcess, setSelectedProcess] = useState<FeedbackProcess | null>(null);
   const [managementScreen, setManagementScreen] = useState<'users' | 'teams' | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(() => window.innerWidth > 700);
 
   const canAccessFeedbackProcesses =
     user?.role === 'ADMIN_LEADER' || user?.role === 'ADMIN_RH';
@@ -97,10 +101,6 @@ const Dashboard: React.FC = () => {
         return (
           <>
             <h2>Painel de Administração de RH</h2>
-            <div className="rh-actions" aria-label="Ações de administração de RH">
-              <button type="button" className="process-create-button" onClick={() => setManagementScreen('users')}>Criar usuário</button>
-              <button type="button" className="process-open-button" onClick={() => setManagementScreen('teams')}>Gerenciar equipes</button>
-            </div>
             <div className="dashboard-workspace">
               <ReportsPanel />
               <ProcessPanel
@@ -127,46 +127,67 @@ const Dashboard: React.FC = () => {
     (selectedProcess !== null || (canCreateFeedbackProcess && isCreating));
   const isManagementScreen = user?.role === 'ADMIN_RH' && managementScreen !== null;
 
+  const navItems: SideNavItem[] = [{ key: 'panel', label: 'Painel' }];
+  if (user?.role === 'ADMIN_RH') {
+    navItems.push({ key: 'users', label: 'Usuários' }, { key: 'teams', label: 'Equipes' });
+  }
+  if (canCreateFeedbackProcess) {
+    navItems.push({ key: 'new-planning', label: 'Novo planejamento' });
+  }
+
+  const activeNavKey = isManagementScreen
+    ? (managementScreen as string)
+    : isPlanningScreen && selectedProcess === null
+      ? 'new-planning'
+      : 'panel';
+
+  const handleNavSelect = (key: string) => {
+    setSelectedProcess(null);
+    setIsCreating(key === 'new-planning');
+    setManagementScreen(key === 'users' || key === 'teams' ? key : null);
+  };
+
   return (
     <div className="dashboard-container">
-      <header className="dashboard-header">
-        <h1>Sistema</h1>
-        <div className="header-info">
-          <div className="user-info">
-            <p className="user-name">{user?.name}</p>
-            <p className="user-role">{getRoleName(user?.role || '')}</p>
-          </div>
-          <button onClick={handleLogout} className="logout-button">
-            Sair
-          </button>
-        </div>
-      </header>
+      <AppHeader
+        userName={user?.name}
+        roleLabel={getRoleName(user?.role || '')}
+        isMenuOpen={isMenuOpen}
+        onToggleMenu={() => setIsMenuOpen((open) => !open)}
+        onLogout={handleLogout}
+      />
 
-      <main className="dashboard-main">
-        <div className={`dashboard-content${isPlanningScreen || isManagementScreen ? ' dashboard-content-planning' : ''}`}>
-          {isManagementScreen && managementScreen === 'users' ? (
-            <ManagedUserCreation currentUserId={user.id} onBack={() => setManagementScreen(null)} />
-          ) : isManagementScreen && managementScreen === 'teams' ? (
-            <TeamManagement onBack={() => setManagementScreen(null)} />
-          ) : isPlanningScreen && user ? (
-            <FeedbackProcessCreation
-              key={selectedProcess?.id ?? 'new-process'}
-              initialProcess={selectedProcess}
-              userId={user.id}
-              userRole={user.role === 'ADMIN_RH' ? 'ADMIN_RH' : 'ADMIN_LEADER'}
-              onBack={() => {
-                setIsCreating(false);
-                setSelectedProcess(null);
-              }}
-              onSaved={async () => {
-                await refreshProcesses();
-                setIsCreating(false);
-                setSelectedProcess(null);
-              }}
-            />
-          ) : renderContent()}
-        </div>
-      </main>
+      <div className="app-body">
+        {isMenuOpen && (
+          <SideNav items={navItems} activeKey={activeNavKey} onSelect={handleNavSelect} />
+        )}
+
+        <main className="dashboard-main">
+          <div className={`dashboard-content${isPlanningScreen || isManagementScreen ? ' dashboard-content-planning' : ''}`}>
+            {isManagementScreen && managementScreen === 'users' ? (
+              <ManagedUserCreation currentUserId={user.id} />
+            ) : isManagementScreen && managementScreen === 'teams' ? (
+              <TeamManagement />
+            ) : isPlanningScreen && user ? (
+              <FeedbackProcessCreation
+                key={selectedProcess?.id ?? 'new-process'}
+                initialProcess={selectedProcess}
+                userId={user.id}
+                userRole={user.role === 'ADMIN_RH' ? 'ADMIN_RH' : 'ADMIN_LEADER'}
+                onBack={() => {
+                  setIsCreating(false);
+                  setSelectedProcess(null);
+                }}
+                onSaved={async () => {
+                  await refreshProcesses();
+                  setIsCreating(false);
+                  setSelectedProcess(null);
+                }}
+              />
+            ) : renderContent()}
+          </div>
+        </main>
+      </div>
     </div>
   );
 };
