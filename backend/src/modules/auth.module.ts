@@ -4,7 +4,10 @@ import { PassportModule } from '@nestjs/passport';
 import { AuthService } from '../services/auth.service';
 import { AuthController } from '../controllers/auth.controller';
 import { JwtStrategy } from '../guards/jwt.strategy';
+import { RolesGuard } from '../guards/roles.guard';
 import { PrismaModule } from '../prisma.module';
+import { UserRepository } from '../repositories/user.repository';
+import { TeamRepository } from '../repositories/team.repository';
 
 @Module({
   imports: [
@@ -15,8 +18,14 @@ import { PrismaModule } from '../prisma.module';
       signOptions: { expiresIn: '24h' },
     }),
   ],
-  providers: [AuthService, JwtStrategy],
+  providers: [
+    AuthService,
+    UserRepository,
+    TeamRepository,
+    JwtStrategy,
+    RolesGuard,
+  ],
   controllers: [AuthController],
-  exports: [AuthService],
+  exports: [AuthService, UserRepository],
 })
 export class AuthModule {}

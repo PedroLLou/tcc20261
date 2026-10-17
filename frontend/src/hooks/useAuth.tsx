@@ -5,7 +5,7 @@ import React, {
   useEffect,
 } from 'react';
 import authService from '../services/authService';
-import type { User } from '../services/authService';
+import type { User } from '../types/user';
 
 interface AuthContextType {
   user: User | null;
@@ -17,6 +17,7 @@ interface AuthContextType {
     age: number,
     email: string,
     password: string,
+    teamId: number,
   ) => Promise<void>;
   logout: () => void;
 }
@@ -51,12 +52,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     age: number,
     email: string,
     password: string,
+    teamId: number,
   ) => {
     const userData = await authService.register({
       name,
       age,
       email,
       password,
+      teamId,
     });
     setUser(userData);
   };

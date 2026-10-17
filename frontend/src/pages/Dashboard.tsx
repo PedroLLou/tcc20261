@@ -1,9 +1,53 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { useFeedbackProcesses } from '../hooks/useFeedbackProcesses';
+import FeedbackProcessCreation from './FeedbackProcessCreation';
+import ManagedUserCreation from './ManagedUserCreation';
+import TeamManagement from './TeamManagement';
+import type { FeedbackProcess } from '../types/feedback-process';
+import { ProcessPanel, ReportsPanel } from '../components/DashboardPanels';
 import '../styles/Dashboard.css';
 
 const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
+  const [deletingProcessId, setDeletingProcessId] = useState<number | null>(null);
+  const [processActionError, setProcessActionError] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+  const [selectedProcess, setSelectedProcess] = useState<FeedbackProcess | null>(null);
+  const [managementScreen, setManagementScreen] = useState<'users' | 'teams' | null>(null);
+
+  const canAccessFeedbackProcesses =
+    user?.role === 'ADMIN_LEADER' || user?.role === 'ADMIN_RH';
+  const canCreateFeedbackProcess = user?.role === 'ADMIN_LEADER';
+  const {
+    processes,
+    isLoading: isLoadingProcesses,
+    error: processError,
+    reload: reloadProcesses,
+    remove: removeProcess,
+  } = useFeedbackProcesses(canAccessFeedbackProcesses);
+
+  const refreshProcesses = async () => {
+    await reloadProcesses();
+  };
+
+  const deleteProcess = async (process: FeedbackProcess) => {
+    const participantName = process.participant?.name ?? 'este participante';
+    if (!window.confirm(`Excluir o planejamento de ${participantName}? Esta ação não pode ser desfeita.`)) {
+      return;
+    }
+
+    setDeletingProcessId(process.id);
+    setProcessActionError('');
+    try {
+      await removeProcess(process.id);
+      if (selectedProcess?.id === process.id) setSelectedProcess(null);
+    } catch {
+      setProcessActionError('Não foi possível excluir o planejamento. Tente novamente.');
+    } finally {
+      setDeletingProcessId(null);
+    }
+  };
 
   const handleLogout = () => {
     if (window.confirm('Deseja realmente sair?')) {
@@ -26,29 +70,62 @@ const Dashboard: React.FC = () => {
     switch (user.role) {
       case 'ADMIN_LEADER':
         return (
-          <div className="dashboard-content">
+          <>
             <h2>Painel do Líder de Equipe</h2>
-          </div>
+            <div className="dashboard-workspace">
+              <ReportsPanel />
+              <ProcessPanel
+                processes={processes}
+                isLoading={isLoadingProcesses}
+                error={processError || processActionError}
+                canCreate={canCreateFeedbackProcess}
+                deletingProcessId={deletingProcessId}
+                onCreate={() => setIsCreating(true)}
+                onSelect={setSelectedProcess}
+                onDelete={(process) => void deleteProcess(process)}
+              />
+            </div>
+          </>
         );
 
       case 'TEAM_MEMBER':
         return (
-          <div className="dashboard-content">
-            <h2>Painel do Membro da Equipe</h2>
-          </div>
+          <h2>Painel do Membro da Equipe</h2>
         );
 
       case 'ADMIN_RH':
         return (
-          <div className="dashboard-content">
+          <>
             <h2>Painel de Administração de RH</h2>
-          </div>
+            <div className="rh-actions" aria-label="Ações de administração de RH">
+              <button type="button" className="process-create-button" onClick={() => setManagementScreen('users')}>Criar usuário</button>
+              <button type="button" className="process-open-button" onClick={() => setManagementScreen('teams')}>Gerenciar equipes</button>
+            </div>
+            <div className="dashboard-workspace">
+              <ReportsPanel />
+              <ProcessPanel
+                processes={processes}
+                isLoading={isLoadingProcesses}
+                error={processError || processActionError}
+                canCreate={canCreateFeedbackProcess}
+                deletingProcessId={deletingProcessId}
+                onCreate={() => setIsCreating(true)}
+                onSelect={setSelectedProcess}
+                onDelete={(process) => void deleteProcess(process)}
+              />
+            </div>
+          </>
         );
 
       default:
         return <div>Acesso não autorizado</div>;
     }
   };
+
+  const isPlanningScreen =
+    canAccessFeedbackProcesses &&
+    (selectedProcess !== null || (canCreateFeedbackProcess && isCreating));
+  const isManagementScreen = user?.role === 'ADMIN_RH' && managementScreen !== null;
 
   return (
     <div className="dashboard-container">
@@ -66,7 +143,29 @@ const Dashboard: React.FC = () => {
       </header>
 
       <main className="dashboard-main">
-        {renderContent()}
+        <div className={`dashboard-content${isPlanningScreen || isManagementScreen ? ' dashboard-content-planning' : ''}`}>
+          {isManagementScreen && managementScreen === 'users' ? (
+            <ManagedUserCreation currentUserId={user.id} onBack={() => setManagementScreen(null)} />
+          ) : isManagementScreen && managementScreen === 'teams' ? (
+            <TeamManagement onBack={() => setManagementScreen(null)} />
+          ) : isPlanningScreen && user ? (
+            <FeedbackProcessCreation
+              key={selectedProcess?.id ?? 'new-process'}
+              initialProcess={selectedProcess}
+              userId={user.id}
+              userRole={user.role === 'ADMIN_RH' ? 'ADMIN_RH' : 'ADMIN_LEADER'}
+              onBack={() => {
+                setIsCreating(false);
+                setSelectedProcess(null);
+              }}
+              onSaved={async () => {
+                await refreshProcesses();
+                setIsCreating(false);
+                setSelectedProcess(null);
+              }}
+            />
+          ) : renderContent()}
+        </div>
       </main>
     </div>
   );

@@ -1,0 +1,14 @@
+.git
+.jj
+node_modules
+build
+coverage
+.env
+.env.*
+*.log
+*.pem
+*.key
+.aws
+.npmrc
+.vscode
+.idea

@@ -1,12 +1,10 @@
-import axios from 'axios';
-
-export interface User {
-  id: number;
-  email: string;
-  name: string;
-  role: 'ADMIN_LEADER' | 'TEAM_MEMBER' | 'ADMIN_RH';
-  access_token: string;
-}
+import api from './api';
+import type { ManagedUser } from '../types/managed-user';
+import type { Team } from '../types/team';
+import type { User } from '../types/user';
+export type { ManagedUser } from '../types/managed-user';
+export type { Team } from '../types/team';
+export type { User } from '../types/user';
 
 export interface LoginRequest {
   email: string;
@@ -18,24 +16,23 @@ export interface RegisterRequest {
   age: number;
   email: string;
   password: string;
+  teamId: number;
+}
+
+export interface CreateManagedUserRequest
+  extends Omit<RegisterRequest, 'teamId'> {
+  role: User['role'];
+  teamId: number | null;
 }
 
 class AuthService {
-  private api: ReturnType<typeof axios.create>;
-
+  private readonly api = api;
   private readonly TOKEN_KEY = 'auth_token';
   private readonly USER_KEY = 'auth_user';
 
-  constructor() {
-    this.api = axios.create({
-      baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3001',
-    });
-  }
-
   setToken(token: string): void {
     localStorage.setItem(this.TOKEN_KEY, token);
-
-    this.api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    this.api.defaults.headers.common.Authorization = `Bearer ${token}`;
   }
 
   getToken(): string | null {
@@ -48,10 +45,7 @@ class AuthService {
 
   getUser(): User | null {
     const user = localStorage.getItem(this.USER_KEY);
-
-    if (!user) {
-      return null;
-    }
+    if (!user) return null;
 
     try {
       return JSON.parse(user) as User;
@@ -66,45 +60,64 @@ class AuthService {
   }
 
   async login(credentials: LoginRequest): Promise<User> {
-    const response = await this.api.post<User>(
-      '/api/v1/auth/login',
-      credentials,
-    );
-
+    const response = await this.api.post<User>('/auth/login', credentials);
     const user = response.data;
-
     this.setToken(user.access_token);
     this.setUser(user);
-
     return user;
   }
 
   async register(data: RegisterRequest): Promise<User> {
-    const response = await this.api.post<User>(
-      '/api/v1/auth/register',
-      data,
-    );
-
+    const response = await this.api.post<User>('/auth/register', data);
     const user = response.data;
-
     this.setToken(user.access_token);
     this.setUser(user);
-
     return user;
+  }
+
+  async createManagedUser(
+    data: CreateManagedUserRequest,
+  ): Promise<Omit<User, 'access_token'>> {
+    const response = await this.api.post<Omit<User, 'access_token'>>(
+      '/auth/users',
+      data,
+    );
+    return response.data;
+  }
+
+  async listTeams(): Promise<Team[]> {
+    const response = await this.api.get<Team[]>('/auth/teams');
+    return response.data;
+  }
+
+  async createTeam(name: string): Promise<Team> {
+    const response = await this.api.post<Team>('/auth/teams', { name });
+    return response.data;
+  }
+
+  async deleteTeam(id: number): Promise<void> {
+    await this.api.delete(`/auth/teams/${id}`);
+  }
+
+  async listManagedUsers(): Promise<ManagedUser[]> {
+    const response = await this.api.get<ManagedUser[]>('/auth/users');
+    return response.data;
+  }
+
+  async deleteManagedUser(id: number): Promise<void> {
+    await this.api.delete(`/auth/users/${id}`);
   }
 
   logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
-
-    delete this.api.defaults.headers.common['Authorization'];
+    delete this.api.defaults.headers.common.Authorization;
   }
 
   initializeAuth(): void {
     const token = this.getToken();
-
     if (token) {
-      this.api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      this.api.defaults.headers.common.Authorization = `Bearer ${token}`;
     }
   }
 }
