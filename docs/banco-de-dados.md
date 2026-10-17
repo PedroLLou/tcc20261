@@ -281,7 +281,10 @@ O script `prisma/configure-app-role.mjs`:
 - cria o `tcc_app` (ou atualiza a senha, se já existir);
 - aplica as permissões da seção 3;
 - define o `tcc_app` como papel confiável da auditoria;
-- confirma no final que o usuário não tem nenhum poder administrativo.
+- remove qualquer associação do `tcc_app` a outros papéis. Como membro do dono,
+  ele poderia usar `SET ROLE` e desligar a auditoria;
+- confirma no final que o usuário não tem nenhum poder administrativo nem pode
+  assumir outro papel. Se algo sobrar, falha e desfaz tudo.
 
 Ele pode ser executado de novo sem efeito colateral, por exemplo para trocar a
 senha.

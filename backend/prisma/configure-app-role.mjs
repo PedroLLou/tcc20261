@@ -107,15 +107,42 @@ try {
     await client.query(sql);
     console.log(`  ok  ${label}`);
   }
+
+  // 7. O usuário da API não pode ser membro de outro papel: com SET ROLE para
+  //    o dono das tabelas, ele conseguiria desligar a auditoria.
+  const { rows: memberships } = await client.query(
+    `SELECT roleid::regrole::text AS papel FROM pg_auth_members
+      WHERE member = (SELECT oid FROM pg_roles WHERE rolname = $1)`,
+    [appUser],
+  );
+  for (const { papel } of memberships) {
+    await client.query(`REVOKE ${papel} FROM ${client.escapeIdentifier(appUser)}`);
+  }
+  console.log(
+    `  ok  associações a outros papéis: ${memberships.length ? `${memberships.length} revogada(s), conferido abaixo` : 'nenhuma'}`,
+  );
+
+  // Verificação final: nenhum poder administrativo e nenhum papel que possa
+  // ser assumido, direta ou indiretamente. Um REVOKE sem efeito (associação
+  // concedida por outro usuário) também é barrado aqui.
   const check = await client.query(
-    `SELECT rolsuper OR rolreplication OR rolbypassrls OR rolcreaterole OR rolcreatedb AS poderoso
-       FROM pg_roles WHERE rolname = $1`,
+    `SELECT r.rolsuper OR r.rolreplication OR r.rolbypassrls
+              OR r.rolcreaterole OR r.rolcreatedb AS poderoso,
+            (SELECT string_agg(o.rolname, ', ' ORDER BY o.rolname) FROM pg_roles o
+              WHERE o.oid <> r.oid AND pg_has_role(r.oid, o.oid, 'MEMBER')) AS herda
+       FROM pg_roles r WHERE r.rolname = $1`,
     [appUser],
   );
   if (check.rows[0]?.poderoso !== false) {
     throw new Error(`o usuário "${appUser}" tem algum poder administrativo.`);
   }
-  console.log('  ok  sem poderes administrativos');
+  if (check.rows[0].herda) {
+    throw new Error(
+      `o usuário "${appUser}" ainda pode assumir os papéis: ${check.rows[0].herda}. ` +
+        'Remova essas associações com quem as concedeu e rode o script de novo.',
+    );
+  }
+  console.log('  ok  sem poderes administrativos nem papéis de outros usuários');
   await client.query('COMMIT');
   console.log(`\nUsuário "${appUser}" configurado no banco "${database}" (dono: ${owner}).`);
   console.log('Use-o na DATABASE_URL da API. A DIRECT_URL continua com o dono, só para migrações.');
