@@ -1,0 +1,34 @@
+<mxfile host="app.diagrams.net" modified="2026-09-25T00:00:00.000Z" version="24.7.17" type="device">
+  <diagram id="workflow-tcc2" name="Workflow TCC2">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="start" value="Selecionar tarefa priorizada" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="40" y="280" width="160" height="60" as="geometry"/></mxCell>
+        <mxCell id="ready" value="Objetivo, aceite, responsável e dependências claros?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1"><mxGeometry x="250" y="265" width="170" height="90" as="geometry"/></mxCell>
+        <mxCell id="refine" value="Refinar ou registrar impedimento" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="250" y="420" width="170" height="60" as="geometry"/></mxCell>
+        <mxCell id="work" value="Em andamento: branch curta, implementar e verificar" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="470" y="280" width="190" height="60" as="geometry"/></mxCell>
+        <mxCell id="checks" value="Verificações aplicáveis passaram no SHA atual?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1"><mxGeometry x="710" y="265" width="170" height="90" as="geometry"/></mxCell>
+        <mxCell id="block" value="Corrigir ou registrar impedimento" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="710" y="420" width="170" height="60" as="geometry"/></mxCell>
+        <mxCell id="review" value="Em revisão: abrir PR e solicitar revisão humana" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1"><mxGeometry x="930" y="280" width="180" height="60" as="geometry"/></mxCell>
+        <mxCell id="adjust" value="Há ajustes solicitados?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1"><mxGeometry x="1160" y="265" width="150" height="90" as="geometry"/></mxCell>
+        <mxCell id="merge" value="Conferir aceite, aprovação humana e evidências; integrar por squash" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="1360" y="280" width="190" height="60" as="geometry"/></mxCell>
+        <mxCell id="done" value="Conferir resultado em main e concluir" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="1360" y="420" width="190" height="60" as="geometry"/></mxCell>
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="start" target="ready"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2" value="Não" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="ready" target="refine"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="ready" target="work"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3label" value="Sim" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fillColor=#ffffff;strokeColor=none;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="428" y="225" width="40" height="24" as="geometry"/></mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="work" target="checks"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e5" value="Não" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="checks" target="block"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="checks" target="review"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e6label" value="Sim" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fillColor=#ffffff;strokeColor=none;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="878" y="225" width="40" height="24" as="geometry"/></mxCell>
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="review" target="adjust"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e8" value="Sim: voltar a Em andamento" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="adjust" target="work"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1235" y="190"/><mxPoint x="565" y="190"/></Array></mxGeometry></mxCell>
+        <mxCell id="e9" value="Não" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="adjust" target="merge"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="merge" target="done"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="refine" target="start"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="335" y="530"/><mxPoint x="120" y="530"/></Array></mxGeometry></mxCell>
+        <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="block" target="work"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="795" y="530"/><mxPoint x="565" y="530"/></Array></mxGeometry></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

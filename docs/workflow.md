@@ -1,242 +1,115 @@
-# Workflow de Desenvolvimento
+# Workflow de desenvolvimento
 
-Como a equipe trabalha no repositório no dia a dia. 
+> Atualização de 17/10/2026 para discussão no PR #100. O uso atual do Hermes está descrito na seção 4. As regras de organização, revisão e merge abaixo continuam como proposta para a equipe; este documento não configura proteções ou checks obrigatórios no GitHub.
 
----
+Usamos o **GitHub Flow** como base: cada alteração fica em uma branch curta e entra na `main` por um Pull Request (PR). A issue descreve a tarefa, e o quadro mostra em que etapa ela está.
 
-## 1. Princípios
+## Fluxo da tarefa
 
-Adotamos o **GitHub Flow**: `main` é a única branch permanente, sempre
-pronta para deploy; todo trabalho vai em branches curtas; toda mudança
-entra no `main` via Pull Request revisado.
-
-Três regras inegociáveis:
-
-1. **Ninguém commita direto no `main`.** Sempre via PR.
-2. **Toda branch nasce de um `main` atualizado.**
-3. **Nenhum PR entra sem pelo menos uma aprovação** de outro integrante.
-
-> A regra 1 está configurada como Branch Protection Rule. Tentar
-> `git push origin main` retorna `GH013: Repository rule violations`.
-
----
-
-## 2. Setup inicial (uma vez por máquina)
-
-```bash
-git config --global user.name "Seu Nome"
-git config --global user.email "seu@email.com"
-git config --global pull.rebase true
+```mermaid
+flowchart TD
+    A[Selecionar tarefa priorizada] --> B{Objetivo, aceite, responsável e dependências claros?}
+    B -- Não --> C[Refinar ou registrar impedimento]
+    C --> A
+    B -- Sim --> D[Em andamento: criar branch curta a partir de main]
+    D --> E[Implementar e verificar]
+    E --> F{Verificações aplicáveis passaram no SHA atual?}
+    F -- Não --> G[Corrigir ou registrar impedimento]
+    G --> E
+    F -- Sim --> H[Em revisão: abrir PR e solicitar revisão humana]
+    H --> I{Há ajustes solicitados?}
+    I -- Sim --> J[Em andamento: responder, ajustar e verificar novamente]
+    J --> E
+    I -- Não --> K{Aceite, aprovação humana e evidências conferidos?}
+    K -- Não --> H
+    K -- Sim --> L[Integrar em main por squash]
+    L --> M[Conferir resultado integrado]
+    M --> N{Aceite atendido?}
+    N -- Não --> O[Registrar falha e criar ou reabrir correção vinculada]
+    O --> A
+    N -- Sim --> P[Concluído: fechar ou atualizar issue e quadro]
 ```
 
-O `pull.rebase true` evita commits de merge desnecessários e a tela do
-Vim em divergências simples.
+Há uma versão resumida em [PNG](diagrams/workflow-tcc2.png) e [SVG](diagrams/workflow-tcc2.svg), com [arquivo editável no draw.io](diagrams/workflow-tcc2.drawio). O Mermaid acima detalha as decisões e os retornos. O tratamento de falhas e impedimentos está explicado nas seções seguintes.
 
----
+## 1. Escolher e preparar a tarefa
 
-## 3. O ciclo de uma tarefa
+Antes de começar outra tarefa, veja se há algum PR que você pode ajudar a revisar.
 
-### 3.1. Antes de começar
+Escolha uma issue priorizada e combine o responsável, o objetivo, os critérios de aceite e as dependências. Se faltar informação ou houver um bloqueio, registre isso na issue e combine o próximo passo. Um ajuste pequeno pode ficar só no PR, com o motivo explicado.
 
-```bash
-git checkout main
-git pull origin main
-```
+| Estado | Quando usar |
+|---|---|
+| Pendente | A tarefa está cadastrada, mas o trabalho ainda não começou. |
+| Em andamento | Alguém está trabalhando nela ou fazendo ajustes pedidos na revisão. |
+| Em revisão | O PR está pronto para outra pessoa revisar. |
+| Concluído | O resultado integrado foi conferido e atende ao combinado. |
 
-Issues são opcionais — recomendadas para tarefas grandes; mudanças diretas
-podem ir sem. Quando existir issue, use o número no nome da branch.
+Vincule issue e PR. Se os dois tiverem cartões no quadro, mantenha os estados coerentes com o trabalho real, para a mesma tarefa não aparecer simultaneamente como pendente e em revisão. O comentário do Hermes não muda o cartão automaticamente.
 
-### 3.2. Criar a branch
+## 2. Desenvolver e verificar
 
-```bash
-git checkout -b feat/descricao-curta
-# ou, com issue:
-git checkout -b feat/12-cadastro-pessoa
-```
+Preserve suas mudanças locais antes de atualizar a main. Crie uma branch curta a partir da versão atualizada.
 
-Prefixos e exemplos em [§4](#4-convenção-de-nomes-de-branch).
+Use `tipo/N-descricao-curta` quando houver issue, como `docs/96-workflow-tcc2`, ou `tipo/descricao-curta` quando não houver. Faça commits pequenos no formato `tipo(escopo): descrição`, em português, minúsculas e sem ponto final. Exemplo: `docs(gcs): atualiza workflow`. Tipos usuais: `feat`, `fix`, `docs`, `test`, `refactor`, `chore` e `ci`.
 
-### 3.3. Desenvolver e commitar
+Antes de pedir revisão:
 
-Commits pequenos e frequentes, sempre em **Conventional Commits**
-([§5](#5-convenção-de-commits)):
+- confira o próprio diff;
+- execute testes, build e outras verificações pertinentes à mudança;
+- registre comandos ou passos, resultados, limitações e o commit verificado;
+- confira os checks do commit atual. O SHA é o identificador desse commit.
 
-```bash
-git add <arquivos>
-git commit -m "feat(cadastro): adiciona endpoint POST /pessoas"
-```
+Explique quais comportamentos os testes cobrem. Conforme a mudança, podem ser necessários testes unitários, de integração ou cenários funcionais. Em correções de defeito, indique o teste de regressão ou justifique por que ele ainda não existe. Verificações manuais devem ser identificadas como manuais. Para documentação, confira conteúdo, links e diagramas.
 
-### 3.4. Sincronizar durante o trabalho
+**O conjunto mínimo de testes e cenários funcionais ainda precisa ser fechado com os responsáveis e a equipe.** Esta proposta não determina que apenas testes unitários bastam nem exige integração ou teste de tela em todo PR.
 
-Suba sua branch pelo menos 1x por dia:
+Um teste que passou antes dos últimos ajustes não confirma a versão atual. Se um check falhar, investigue e registre a causa, o link da execução, o impacto e o encaminhamento. Uma falha anterior à mudança continua sendo uma pendência; seu registro não transforma o check em aprovado nem autoriza ignorar falhas automaticamente.
 
-```bash
-git push origin feat/descricao-curta
-```
+## 3. Abrir o PR e pedir revisão
 
-No início de cada dia e antes de abrir o PR, atualize sua branch com o `main`:
+Abra o PR para main, preencha o template e peça revisão de outro integrante. Use Draft enquanto o trabalho estiver incompleto. Relacione a tarefa com `Refs #N`. A proposta é fechar a issue depois de conferir o resultado na main; use `Closes #N` somente se o merge concluir toda a tarefa e o grupo tiver combinado o fechamento automático.
 
-```bash
-git fetch origin
-git rebase origin/main
-```
+Ao pedir revisão, mova a tarefa para **Em revisão**. O revisor confere:
 
-Se já havia push anterior, o próximo precisa de `--force-with-lease` (mais
-seguro que `--force` — recusa se outra pessoa commitou na branch):
+- atendimento ao requisito e aos critérios de aceite;
+- comportamento, riscos e suficiência das verificações apresentadas;
+- aderência à arquitetura, citando a seção, diagrama ou contrato pertinente e justificando eventuais desvios;
+- respostas aos apontamentos e correspondência entre aprovação e commit atual.
 
-```bash
-git push --force-with-lease origin feat/descricao-curta
-```
+Se forem solicitados ajustes, o autor responde, volta a tarefa para **Em andamento**, corrige e repete as verificações. Depois, pede nova revisão. Um comentário fora do escopo pode virar uma tarefa vinculada, com responsável e motivo, sem exigir uma issue para cada observação.
 
-Conflitos, ver [§7](#7-resolução-de-conflitos).
+Novos commits precisam ser conferidos mesmo que já exista uma aprovação anterior. Evite reescrever o histórico depois que a revisão começar. Se precisar fazer isso ou resolver um conflito que mude o diff, avise o revisor.
 
-### 3.5. Abrir o Pull Request
+## 4. Usar o Hermes como apoio à revisão
 
-1. Branch atualizada com `main`.
-2. Abra o PR no GitHub (sua branch → `main`).
-3. Preencha o template (aparece automático).
-4. Se houver issue: `Closes #N` na descrição fecha a issue no merge.
-5. Marque 1 reviewer, preferencialmente quem entende da área:
-   - Back-end → Fred · Front-end → Felipe · Testes → Leonardo
-   - Infra/nuvem → Adriel · Docs, config, CI → Pedro
-6. Feature grande e ainda não pronta → abra como **Draft PR**.
+O Hermes já publica comentários automáticos de apoio em PRs do projeto. A rotina usa webhook como entrada principal e começa a análise somente depois de os testes passarem na versão atual de um PR aberto, não Draft e destinado à main. Mudanças exclusivamente documentais ficam fora do escopo definido para a IA. A verificação desse filtro e outras melhorias técnicas são acompanhadas separadamente.
 
-### 3.6. Revisão
+O comentário identifica o commit e pode apontar problemas, informar ausência de achados ou declarar análise parcial. **Teste aprovado, ausência de achados e aprovação humana são evidências diferentes.** A IA não aprova, reprova formalmente ou faz merge do PR e não altera o código.
 
-- O GitHub não permite o autor aprovar o próprio PR.
-- O reviewer avalia: faz o que a tarefa descreve? Está testado? Segue
-  os padrões? Quebra algo existente?
-- Comentários diretos no diff, em linhas específicas.
-- Autor ajusta em novos commits.
-- **Evite `--force-with-lease` após a revisão começar** — apaga o contexto
-  dos comentários em linhas. Se for inevitável, avise o reviewer.
+Quem trata cada apontamento é o **autor do PR**:
 
-### 3.7. Merge
+1. Confere se o cenário existe e se o problema se aplica à alteração.
+2. Se procede, corrige na mesma branch e informa o commit e a verificação realizada.
+3. Se não procede ou depende de uma condição não confirmada, explica o motivo e apresenta a evidência disponível.
+4. Se depende de outra pessoa ou sai do escopo, registra o encaminhamento e a pendência.
 
-- **Squash and merge** como padrão: os commits da branch viram um só no
-  `main`, histórico limpo.
-- Título do commit segue Conventional Commits (o GitHub sugere a partir
-  do título do PR).
+O **revisor humano** confere a resposta e o código final e decide sobre aprovação. Quem faz o merge verifica se essa aprovação corresponde à versão atual. A presença de um comentário do Hermes não transfere as correções para quem vai integrar o PR.
 
-> O pipeline de CI com GitHub Actions será configurado em outra frente.
-> Quando ativo, a regra *Require status checks* será adicionada ao ruleset
-> e PRs com CI vermelho ficarão bloqueados. Até lá, só a aprovação é
-> bloqueante.
+Há um comentário automático próprio por PR, atualizado a cada análise. Enquanto a preservação do histórico dos achados é aprimorada, identifique na resposta o problema e o commit analisado; uma atualização do comentário pode trazer um problema diferente. Não apague a distinção entre um achado corrigido e um novo apontamento.
 
-### 3.8. Depois do merge
+Para avaliar a utilidade da assistência, registre por achado a versão, a decisão humana, a justificativa, a correção e o teste quando houver. Diferencie sugestão útil, incorreta e inconclusiva. Um resultado sem achados não comprova ausência de defeitos nem mede a qualidade geral da IA.
 
-```bash
-git checkout main
-git pull origin main
-git branch -d feat/descricao-curta
-```
+## 5. Fazer o merge e concluir
 
-A branch remota geralmente é apagada pelo botão *Delete branch* na página
-do PR. Se não foi: `git push origin --delete feat/descricao-curta`.
+Antes do merge, confira o aceite, a aprovação de outro integrante sobre o commit atual, o tratamento dos comentários e as verificações aplicáveis. Falhas e exceções precisam de encaminhamento explícito; não são dispensadas pelo Hermes. O método proposto é **squash and merge**, que reúne os commits do PR em um commit na main.
 
----
+Depois do merge, confira o resultado integrado. Só então feche ou atualize a issue e mova o cartão para **Concluído**, com os links do PR e das verificações. Se algo não funcionar, registre o problema e reabra a tarefa ou crie uma correção relacionada.
 
-## 4. Convenção de nomes de branch
+A branch pode ser removida depois da integração, desde que não tenha trabalho pendente. Em tarefas de configuração sem PR, registre a mudança, confira o resultado e peça revisão de outro integrante.
 
-Formato: `tipo/descricao-curta` (ou `tipo/N-descricao-curta` com issue).
+## Configurações que ainda precisam ser combinadas
 
-| Prefixo    | Uso                                     | Exemplo                  |
-|------------|-----------------------------------------|--------------------------|
-| `feat/`    | Nova funcionalidade                     | `feat/cadastro-pessoa`   |
-| `fix/`     | Correção de bug                         | `fix/validacao-cpf`      |
-| `refactor/`| Refatoração sem mudar comportamento     | `refactor/extrai-mapper` |
-| `docs/`    | Documentação                            | `docs/atualiza-workflow` |
-| `test/`    | Testes                                  | `test/person-service`    |
-| `chore/`   | Manutenção (deps, configs)              | `chore/atualiza-nest`    |
-| `spike/`   | Experimentação descartável (sem PR)     | `spike/testa-orm`        |
+Esta documentação não ativa bloqueios. Na conferência de 17/10/2026, a main não tinha proteção efetiva. O grupo precisa definir e conferir aprovação por outro integrante, tratamento de novos commits, resolução de comentários, permissões de exceção e checks obrigatórios.
 
-Regras: minúsculas, hífen para separar palavras, sem acentos, 3-5 palavras.
-
----
-
-## 5. Convenção de commits
-
-**Conventional Commits**:
-
-```
-tipo(escopo): descrição em imperativo, minúscula, sem ponto final
-```
-
-Tipos: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `build`, `ci`,
-`perf`, `style`.
-
-Escopos comuns do projeto: `auth`, `cadastro`, `pessoa`, `competencia`,
-`frontend`, `backend`, `infra`, `ci`.
-
-Exemplos:
-
-```
-feat(auth): adiciona validação de token JWT
-fix(cadastro): corrige erro de duplicidade no CPF
-test(pessoa): adiciona testes de unidade para PersonService
-refactor(backend): extrai PersonMapper para arquivo próprio
-docs: atualiza README com instruções de setup
-chore(deps): atualiza nestjs para 10.3.0
-```
-
-Por que importa: histórico legível, changelog automatizável, integração
-trivial com versionamento semântico no futuro.
-
----
-
-## 6. Cadência de sincronização
-
-- **Commit**: várias vezes por dia (por unidade lógica fechada).
-- **Push**: ao menos 1x/dia quando trabalhando na branch.
-- **Rebase do `main` na sua branch**: início de cada dia e antes do PR.
-- **Abrir PR**: assim que revisável. Draft cedo se for grande.
-- **Merge**: só com aprovação (e CI verde, quando ativo).
-
-Branches idealmente não vivem mais de **3-5 dias**. Se for inevitável,
-abra Draft PR cedo.
-
----
-
-## 7. Resolução de conflitos
-
-```bash
-git fetch origin
-git rebase origin/main
-# Git mostra os arquivos em conflito.
-# Resolva os marcadores <<<<<<< ======= >>>>>>>
-git add <arquivos-resolvidos>
-git rebase --continue
-git push --force-with-lease origin feat/descricao-curta
-```
-
-Se o conflito for grande ou envolver decisões de design, **converse com
-quem mexeu no código conflitante** antes de resolver.
-
----
-
-## 8. Casos especiais
-
-- **Hotfix urgente**: ainda vai por PR. Avise no Discord, abra o PR com
-  `fix/descricao-curta`, peça revisão rápida.
-- **Mudança muito grande**: quebre em tarefas menores. Se não der, abra
-  Draft PR cedo para o time acompanhar.
-- **Experimentação**: branches `spike/descricao` podem ser descartadas
-  com `git branch -D`. Nunca faça spike direto no `main`.
-
----
-
-## 9. Proibições
-
-- ❌ Commit direto no `main` (GitHub rejeita automaticamente).
-- ❌ `git push --force` em branches compartilhadas. Use `--force-with-lease`
-  apenas na sua própria branch, quando necessário.
-- ❌ Merge de PR sem aprovação.
-- ❌ Merge de PR com CI vermelho (quando ativo).
-- ❌ Apagar histórico do `main`.
-
----
-
-## 10. Dúvidas
-
-Abra uma issue no repositório ou chame no Discord. Este documento é vivo:
-se algo não estiver funcionando na prática, discutimos e atualizamos.
+Os checks com falhas existentes precisam de tratamento pelos responsáveis antes de se escolher o bloqueio definitivo. Confirme os nomes nas execuções reais e valide a configuração em PR. A aprovação desta proposta, o padrão mínimo de testes e a configuração técnica da proteção são etapas distintas.
