@@ -166,3 +166,48 @@ describeWithDatabase('Auditoria no PostgreSQL (integração)', () => {
     ).rejects.toThrow();
   });
 });
+
+/**
+ * Proteção contra falsificação do autor: quando a função audit_trusted_role()
+ * aponta o usuário de banco da API, uma sessão de outro usuário que informe
+ * app.source = 'APPLICATION' é registrada como DATABASE, sem autor.
+ *
+ * Precisa da conexão do dono do banco, que pode redefinir a função. Tudo roda
+ * numa transação desfeita no final, sem deixar alterações.
+ *
+ *   AUDIT_TEST_OWNER_URL="postgresql://..." npm test -- prisma-audit
+ */
+const ownerUrl = process.env.AUDIT_TEST_OWNER_URL;
+const describeWithOwner = ownerUrl ? describe : describe.skip;
+
+describeWithOwner('Auditoria: papel confiável (integração)', () => {
+  it('deve ignorar o contexto da aplicação vindo de outro usuário do banco', async () => {
+    const owner = new Client({ connectionString: ownerUrl });
+    await owner.connect();
+    try {
+      await owner.query('BEGIN');
+      await owner.query(`CREATE OR REPLACE FUNCTION audit_trusted_role()
+        RETURNS text LANGUAGE sql STABLE AS $$ SELECT 'papel_da_api'::text $$`);
+      await owner.query(`SELECT set_config('app.source', 'APPLICATION', true),
+                                set_config('app.actor_id', '999', true)`);
+      const name = `Falsificada ${Date.now()}`;
+      await owner.query(
+        'INSERT INTO "Team" (name, "updatedAt") VALUES ($1, now())',
+        [name],
+      );
+      const { rows } = await owner.query<{
+        source: string;
+        actorId: number | null;
+      }>(
+        `SELECT source, "actorId" FROM "AuditLog"
+          WHERE "tableName" = 'Team' AND "newData"->>'name' = $1`,
+        [name],
+      );
+
+      expect(rows).toEqual([{ source: 'DATABASE', actorId: null }]);
+    } finally {
+      await owner.query('ROLLBACK');
+      await owner.end();
+    }
+  });
+});

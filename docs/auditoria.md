@@ -88,14 +88,33 @@ AUDIT_TEST_DATABASE_URL="postgresql://.../tcc_test" npm test -- prisma-audit
 
 ---
 
-## 5. Limitações conhecidas
+## 5. Papel confiável e falsificação do autor
 
-- Um usuário com acesso direto ao banco pode executar
-  `set_config('app.source', 'APPLICATION', ...)` e se passar pela aplicação.
-  Isso é bloqueado ao configurar o papel de banco usado pela API:
-  `ALTER DATABASE <banco> SET audit.application_role = '<papel_da_api>';`.
-  A criação desse papel, com privilégios mínimos, é a próxima etapa.
-- Um superusuário do PostgreSQL pode desativar triggers. Por isso a API não
-  deve se conectar com superusuário em produção.
+O *trigger* só aceita o autor informado pela aplicação (`app.source`,
+`app.actor_id`...) quando a conexão usa o **usuário de banco da API**. Esse
+usuário é definido pela função `audit_trusted_role()`, que só o dono do banco
+consegue redefinir.
+
+- **Ambiente local e Compose** (um único usuário de banco): a função retorna
+  `NULL` e o contexto de qualquer sessão é aceito.
+- **Neon** (usuário `tcc_app` para a API): o script `npm run db:app-role`
+  redefine a função com `tcc_app`. Uma sessão de outro usuário, como o pgAdmin
+  conectado com o dono, que tente se passar pela aplicação é registrada com
+  origem `DATABASE` e **sem autor**. Ver
+  [`docs/banco-de-dados.md`](banco-de-dados.md).
+
+Não redefina `audit_trusted_role()` em migrações: isso apagaria a configuração
+feita pelo script nos ambientes compartilhados.
+
+---
+
+## 6. Limitações conhecidas
+
+- O **dono das tabelas** (`tcc_owner` no Neon) pode desativar *triggers*. A
+  API não usa esse usuário: ele fica restrito às migrações, e a senha não deve
+  ser compartilhada além de quem as executa.
+- O próprio usuário da API (`tcc_app`) é confiável por definição. Quem obtiver
+  a senha dele consegue informar qualquer autor. Por isso ela fica só nas
+  variáveis de ambiente da API.
 - A auditoria cobre **alterações** (integridade). O registro de **leituras**
   (confidencialidade) não faz parte desta etapa.

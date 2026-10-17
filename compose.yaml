@@ -22,6 +22,9 @@ services:
       target: migration
     environment:
       DATABASE_URL: ${DATABASE_URL:?Defina DATABASE_URL}
+      # Conexão usada pelo Prisma Migrate (dono do banco). Com o banco local
+      # do Compose, é igual à DATABASE_URL. Ver docs/banco-de-dados.md.
+      DIRECT_URL: ${DIRECT_URL:?Defina DIRECT_URL}
     depends_on:
       db:
         condition: service_healthy

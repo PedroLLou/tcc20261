@@ -64,6 +64,7 @@ docs/
 ├── estrutura-repositorio.md         ← este documento
 ├── auditoria.md                     ← auditoria das alterações de dados (banco)
 ├── analise-seguranca.md             ← análise de segurança do sistema (issues #104–#111)
+├── banco-de-dados.md                ← banco no Neon: branches, usuários, acesso e migrações
 ├── Descrição da Arquitetura/        ← descritivo da arquitetura (.docx + .pdf)
 ├── Descrição dos Casos de Uso/      ← descritivo dos casos de uso (.docx)
 ├── Diagrama de Atividades/          ← diagrama de atividades (.png)
@@ -93,6 +94,7 @@ backend/
 ├── README.md
 ├── prisma/                   ← schema e migrations do banco
 │   ├── schema.prisma
+│   ├── configure-app-role.mjs ← cria o usuário da API com privilégios mínimos
 │   └── migrations/
 └── src/
     ├── main.ts               ← ponto de entrada
@@ -148,12 +150,14 @@ Convenção do Prisma — **deve ficar na raiz do subprojeto backend**:
   comando `prisma migrate dev`. Cada migration contém o SQL aplicado e é
   versionada no repositório para garantir reprodutibilidade entre
   ambientes.
+- **`configure-app-role.mjs`** — script `npm run db:app-role`, que cria o
+  usuário de banco da API com privilégios mínimos em cada ambiente. Ver
+  [`docs/banco-de-dados.md`](banco-de-dados.md).
 
-> **Particularidade**: o arquivo `migrations/migration_lock.toml` está
-> atualmente listado no `.gitignore`. Isso é incomum — a recomendação
-> oficial do Prisma é versionar este arquivo, pois ele garante que toda a
-> equipe usa o mesmo provider de banco. **A confirmar com o responsável
-> pela camada de banco** se foi decisão deliberada ou pode ser revertido.
+> **`migrations/migration_lock.toml`**: versionado, como recomenda o Prisma.
+> Ele garante que toda a equipe usa o mesmo *provider* de banco. A linha que
+> o listava no `.gitignore` foi removida: ela não tinha efeito, porque o
+> arquivo já estava no repositório. Decisão da camada de banco, em 12/10/2026.
 
 ### 3.4. Pastas futuras no backend
 
