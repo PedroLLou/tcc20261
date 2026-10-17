@@ -10,6 +10,7 @@ import * as bcrypt from 'bcrypt';
 import { UserRepository } from '../repositories/user.repository';
 import { TeamRepository } from '../repositories/team.repository';
 import type { User } from '../models/user.model';
+import { withOperationSpan } from '../observability/operations';
 import {
   CreateManagedUserDto,
   LoginDto,
@@ -150,7 +151,10 @@ export class AuthService {
     }
 
     // Verificar senha
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await withOperationSpan(
+      'auth.verify_password',
+      () => bcrypt.compare(password, user.password),
+    );
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Credenciais inválidas');

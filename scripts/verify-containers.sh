@@ -16,7 +16,10 @@ test_dir=$(mktemp -d)
 project_name="tcc-verify-$(date +%s)-$$"
 compose_ready=0
 compose() {
-  "$engine" compose --env-file "$test_dir/.env" -f "$project_root/compose.yaml" -p "$project_name" "$@"
+  local deadline=180
+  if [[ "$1" == build ]]; then deadline=900; fi
+  timeout --signal=TERM --kill-after=10s "$deadline" \
+    "$engine" compose --env-file "$test_dir/.env" -f "$project_root/compose.yaml" -p "$project_name" "$@"
 }
 cleanup() {
   local result=$?

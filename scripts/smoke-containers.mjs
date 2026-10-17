@@ -88,8 +88,16 @@ try {
       method: 'POST', token: admin.access_token, status: 201,
     });
     assert.equal(approved.status, 'PLANNED');
+    const audit = await request('audit-logs', {
+      token: admin.access_token,
+    });
+    const feedbackAudit = audit.items.filter((entry) => entry.tableName === 'FeedbackProcess' && entry.recordId === String(draft.id));
+    assert.ok(feedbackAudit.some((entry) => entry.operation === 'INSERT' && entry.actorId === leader.id),
+      'Auditoria deve registrar a criação pelo líder');
+    assert.ok(feedbackAudit.some((entry) => entry.operation === 'UPDATE' && entry.actorId === admin.id),
+      'Auditoria deve registrar a aprovação pelo RH');
     writeFileSync(statePath, JSON.stringify({ teamId: team.id, teamName, leaderId: leader.id, memberId: member.id, feedbackId: draft.id }), { flag: 'wx', mode: 0o600 });
-    console.log('Frontend, proxy, login, permissões e fluxo de feedback passaram.');
+    console.log('Frontend, proxy, login, permissões, feedback e auditoria passaram.');
   } else {
     const state = JSON.parse(readFileSync(statePath, 'utf8'));
     const teams = await request('auth/teams');
