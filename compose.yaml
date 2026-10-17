@@ -41,13 +41,22 @@ services:
       JWT_SECRET: ${JWT_SECRET:?Defina JWT_SECRET}
       DEFAULT_ADMIN_RH_EMAIL: ${DEFAULT_ADMIN_RH_EMAIL:?Defina DEFAULT_ADMIN_RH_EMAIL}
       DEFAULT_ADMIN_RH_PASSWORD: ${DEFAULT_ADMIN_RH_PASSWORD:?Defina DEFAULT_ADMIN_RH_PASSWORD}
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+      OTEL_SDK_DISABLED: ${OTEL_SDK_DISABLED:-false}
+      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-tcc20261-api}
+      APP_RELEASE: ${APP_RELEASE:-}
+      OTEL_RESOURCE_ATTRIBUTES: ${OTEL_RESOURCE_ATTRIBUTES:-}
+      OTEL_TRACES_SAMPLER_ARG: ${OTEL_TRACES_SAMPLER_ARG:-0.1}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS:-}
+      OTEL_EXPORTER_OTLP_PROTOCOL: ${OTEL_EXPORTER_OTLP_PROTOCOL:-http/protobuf}
     depends_on:
       db:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
     healthcheck:
-      test: [CMD, node, -e, "fetch('http://127.0.0.1:3001/api/v1/auth/teams', {signal: AbortSignal.timeout(2500)}).then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3001/api/v1/health/ready', {signal: AbortSignal.timeout(2500)}).then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
       interval: 15s
       timeout: 5s
       start_period: 20s

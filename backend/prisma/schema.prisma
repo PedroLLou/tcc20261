@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  engineType = "client"
 }
 
 // DATABASE_URL: conexão da API (usuário com privilégios mínimos).

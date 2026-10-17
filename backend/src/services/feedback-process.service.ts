@@ -11,6 +11,7 @@ import {
   UpdateFeedbackProcessDto,
 } from '../dto/feedback-process.dto';
 import type { FeedbackProcess } from '../models/feedback-process.model';
+import { withOperationSpan } from '../observability/operations';
 
 @Injectable()
 export class FeedbackProcessService {
@@ -34,21 +35,23 @@ export class FeedbackProcessService {
   }
 
   async create(ownerId: number, dto: CreateFeedbackProcessDto) {
-    const status = 'DRAFT';
-    const participantId = await this.validateParticipant(dto.participantId);
-    const startsAt = this.normalizeDate(dto.startsAt, 'início');
-    const endsAt = this.normalizeDate(dto.endsAt, 'término');
-    this.validatePlan(status, dto.objective, startsAt, endsAt, dto.criteria);
+    return withOperationSpan('feedback.create', async () => {
+      const status = 'DRAFT';
+      const participantId = await this.validateParticipant(dto.participantId);
+      const startsAt = this.normalizeDate(dto.startsAt, 'início');
+      const endsAt = this.normalizeDate(dto.endsAt, 'término');
+      this.validatePlan(status, dto.objective, startsAt, endsAt, dto.criteria);
 
-    return this.processes.create({
-      description: this.normalizeDescription(dto.description),
-      objective: dto.objective.trim(),
-      startsAt,
-      endsAt,
-      criteria: this.normalizeCriteria(dto.criteria),
-      status,
-      owner: { connect: { id: ownerId } },
-      participant: { connect: { id: participantId } },
+      return this.processes.create({
+        description: this.normalizeDescription(dto.description),
+        objective: dto.objective.trim(),
+        startsAt,
+        endsAt,
+        criteria: this.normalizeCriteria(dto.criteria),
+        status,
+        owner: { connect: { id: ownerId } },
+        participant: { connect: { id: participantId } },
+      });
     });
   }
 
@@ -92,16 +95,18 @@ export class FeedbackProcessService {
   }
 
   async submitForValidation(id: number, actorId: number, actorRole: string) {
-    const current = await this.findOne(id);
-    this.ensureDraftEditable(current, actorId, actorRole);
-    this.validatePlan(
-      'SENT_FOR_VALIDATION',
-      current.objective,
-      current.startsAt,
-      current.endsAt,
-      current.criteria,
-    );
-    return this.processes.update(id, { status: 'SENT_FOR_VALIDATION' });
+    return withOperationSpan('feedback.submit_for_validation', async () => {
+      const current = await this.findOne(id);
+      this.ensureDraftEditable(current, actorId, actorRole);
+      this.validatePlan(
+        'SENT_FOR_VALIDATION',
+        current.objective,
+        current.startsAt,
+        current.endsAt,
+        current.criteria,
+      );
+      return this.processes.update(id, { status: 'SENT_FOR_VALIDATION' });
+    });
   }
 
   async approve(id: number) {

@@ -13,6 +13,10 @@ export class PrismaService
   constructor(auditContext: AuditContextService) {
     const adapter = new PrismaPg({
       connectionString: process.env.DATABASE_URL,
+      max: 4,
+      connectionTimeoutMillis: 10000,
+      query_timeout: 10000,
+      statement_timeout: 10000,
     });
     super({ adapter });
     // Todas as operações passam pela extensão de auditoria, que informa ao

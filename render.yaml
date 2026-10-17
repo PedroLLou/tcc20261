@@ -1,0 +1,53 @@
+# API e frontend em containers gratuitos. Banco Neon externo, sem recurso pago.
+# Aplicar migrations da mesma release antes de criar/atualizar a API.
+services:
+  - type: web
+    name: tcc20261-api
+    runtime: docker
+    plan: free
+    region: virginia
+    dockerfilePath: ./backend/Containerfile
+    dockerContext: ./backend
+    autoDeployTrigger: "off"
+    healthCheckPath: /api/v1/health/ready
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: DEFAULT_ADMIN_RH_EMAIL
+        sync: false
+      - key: DEFAULT_ADMIN_RH_PASSWORD
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: OTEL_SERVICE_NAME
+        value: tcc20261-api
+      - key: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: https://api.honeycomb.io
+      - key: OTEL_EXPORTER_OTLP_HEADERS
+        sync: false
+      - key: OTEL_EXPORTER_OTLP_PROTOCOL
+        value: http/protobuf
+      - key: OTEL_TRACES_SAMPLER_ARG
+        value: "0.1"
+  - type: web
+    name: tcc20261-frontend
+    runtime: docker
+    plan: free
+    region: virginia
+    dockerfilePath: ./frontend/Containerfile
+    dockerContext: ./frontend
+    autoDeployTrigger: "off"
+    healthCheckPath: /healthz
+    envVars:
+      - key: REACT_APP_API_URL
+        value: /api/v1
+      - key: API_UPSTREAM_SCHEME
+        value: https
+      - key: API_UPSTREAM_HOST
+        sync: false
+      - key: API_UPSTREAM_PORT
+        value: "443"
