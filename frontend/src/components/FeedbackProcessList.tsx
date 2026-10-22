@@ -5,15 +5,21 @@ import FeedbackProcessStatusLabel from './FeedbackProcessStatus';
 interface FeedbackProcessListProps {
   processes: FeedbackProcess[];
   deletingProcessId: number | null;
+  currentUserId?: number;
+  creatingSessionProcessId?: number | null;
   onSelect: (process: FeedbackProcess) => void;
   onDelete: (process: FeedbackProcess) => void;
+  onCreateSession?: (process: FeedbackProcess) => void;
 }
 
 const FeedbackProcessList: React.FC<FeedbackProcessListProps> = ({
   processes,
   deletingProcessId,
+  currentUserId,
+  creatingSessionProcessId = null,
   onSelect,
   onDelete,
+  onCreateSession,
 }) => (
   <ul className="process-list">
     {processes.map((process) => (
@@ -27,6 +33,11 @@ const FeedbackProcessList: React.FC<FeedbackProcessListProps> = ({
             <FeedbackProcessStatusLabel status={process.status} />
           </span>
         </button>
+        {onCreateSession && process.status === 'PLANNED' && process.ownerId === currentUserId && (
+          <button className="process-session-button" type="button" disabled={creatingSessionProcessId === process.id} onClick={() => onCreateSession(process)}>
+            {creatingSessionProcessId === process.id ? 'Criando...' : 'Criar sessão'}
+          </button>
+        )}
         <button className="process-delete-button" type="button" disabled={deletingProcessId === process.id} onClick={() => onDelete(process)}>
           {deletingProcessId === process.id ? 'Excluindo...' : 'Excluir'}
         </button>

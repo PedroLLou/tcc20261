@@ -4,6 +4,7 @@ import { useFeedbackProcesses } from '../hooks/useFeedbackProcesses';
 import FeedbackProcessCreation from './FeedbackProcessCreation';
 import ManagedUserCreation from './ManagedUserCreation';
 import TeamManagement from './TeamManagement';
+import feedbackSessionService from '../services/feedbackSessionService';
 import type { FeedbackProcess } from '../types/feedback-process';
 import { ProcessPanel, ReportsPanel } from '../components/DashboardPanels';
 import AppHeader from '../components/AppHeader';
@@ -15,6 +16,8 @@ const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
   const [deletingProcessId, setDeletingProcessId] = useState<number | null>(null);
   const [processActionError, setProcessActionError] = useState('');
+  const [creatingSessionProcessId, setCreatingSessionProcessId] = useState<number | null>(null);
+  const [sessionNotice, setSessionNotice] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [selectedProcess, setSelectedProcess] = useState<FeedbackProcess | null>(null);
   const [managementScreen, setManagementScreen] = useState<'users' | 'teams' | null>(null);
@@ -53,6 +56,20 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const createSession = async (process: FeedbackProcess) => {
+    setCreatingSessionProcessId(process.id);
+    setProcessActionError('');
+    setSessionNotice('');
+    try {
+      await feedbackSessionService.create(process.id);
+      setSessionNotice('Sessão de feedback criada.');
+    } catch {
+      setProcessActionError('Não foi possível criar a sessão. Tente novamente.');
+    } finally {
+      setCreatingSessionProcessId(null);
+    }
+  };
+
   const handleLogout = () => {
     if (window.confirm('Deseja realmente sair?')) {
       logout();
@@ -84,9 +101,13 @@ const Dashboard: React.FC = () => {
                 error={processError || processActionError}
                 canCreate={canCreateFeedbackProcess}
                 deletingProcessId={deletingProcessId}
+                notice={sessionNotice}
+                currentUserId={user.id}
+                creatingSessionProcessId={creatingSessionProcessId}
                 onCreate={() => setIsCreating(true)}
                 onSelect={setSelectedProcess}
                 onDelete={(process) => void deleteProcess(process)}
+                onCreateSession={(process) => void createSession(process)}
               />
             </div>
           </>

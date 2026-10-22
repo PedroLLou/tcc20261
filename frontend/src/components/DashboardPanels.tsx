@@ -27,9 +27,13 @@ interface ProcessPanelProps {
   error: string;
   canCreate: boolean;
   deletingProcessId: number | null;
+  notice?: string;
+  currentUserId?: number;
+  creatingSessionProcessId?: number | null;
   onCreate: () => void;
   onSelect: (process: FeedbackProcess) => void;
   onDelete: (process: FeedbackProcess) => void;
+  onCreateSession?: (process: FeedbackProcess) => void;
 }
 
 export const ProcessPanel: React.FC<ProcessPanelProps> = ({
@@ -38,9 +42,13 @@ export const ProcessPanel: React.FC<ProcessPanelProps> = ({
   error,
   canCreate,
   deletingProcessId,
+  notice,
+  currentUserId,
+  creatingSessionProcessId,
   onCreate,
   onSelect,
   onDelete,
+  onCreateSession,
 }) => (
   <section className="process-panel" aria-labelledby="process-panel-title">
     <div className="process-panel-heading">
@@ -59,6 +67,11 @@ export const ProcessPanel: React.FC<ProcessPanelProps> = ({
         {error}
       </p>
     )}
+    {notice && (
+      <p className="process-list-notice" role="status">
+        {notice}
+      </p>
+    )}
     {isLoading ? (
       <p className="process-list-empty">Carregando processos...</p>
     ) : processes.length === 0 ? (
@@ -67,8 +80,11 @@ export const ProcessPanel: React.FC<ProcessPanelProps> = ({
       <FeedbackProcessList
         processes={processes}
         deletingProcessId={deletingProcessId}
+        currentUserId={currentUserId}
+        creatingSessionProcessId={creatingSessionProcessId}
         onSelect={onSelect}
         onDelete={onDelete}
+        onCreateSession={onCreateSession}
       />
     )}
   </section>
