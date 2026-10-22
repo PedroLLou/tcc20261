@@ -79,6 +79,7 @@ const Login: React.FC = () => {
   return (
   <div className="login-container">
     <div className="login-card">
+      <p className="login-brand">Sistema de Gerenciamento de Feedbacks</p>
       <h1 className="login-title">
         {isLogin ? 'Login' : 'Cadastro'}
       </h1>
