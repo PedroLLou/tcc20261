@@ -8,14 +8,17 @@ import { RolesGuard } from '../guards/roles.guard';
 import { PrismaModule } from '../prisma.module';
 import { UserRepository } from '../repositories/user.repository';
 import { TeamRepository } from '../repositories/team.repository';
+import { getJwtSecret } from '../config/jwt.config';
 
 @Module({
   imports: [
     PrismaModule,
     PassportModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'your-secret-key',
-      signOptions: { expiresIn: '24h' },
+    JwtModule.registerAsync({
+      useFactory: () => ({
+        secret: getJwtSecret(),
+        signOptions: { expiresIn: '24h' },
+      }),
     }),
   ],
   providers: [
