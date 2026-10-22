@@ -3,9 +3,7 @@ import authService from '../services/authService';
 import type { Team } from '../types/team';
 import '../styles/FeedbackProcessCreation.css';
 
-interface Props { onBack: () => void; }
-
-const TeamManagement: React.FC<Props> = ({ onBack }) => {
+const TeamManagement: React.FC = () => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [name, setName] = useState('');
   const [error, setError] = useState('');
@@ -49,7 +47,6 @@ const TeamManagement: React.FC<Props> = ({ onBack }) => {
 
   return (
     <section className="feedback-create-panel management-create-panel">
-      <button className="management-back-button" type="button" onClick={onBack}>Voltar ao painel</button>
       <p className="feedback-create-eyebrow">Organização</p>
       <h2>Equipes</h2>
       <p className="feedback-create-intro">Crie equipes para vincular membros e líderes durante o cadastro.</p>

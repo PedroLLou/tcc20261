@@ -1,5 +1,5 @@
-// Carrega o .env antes de qualquer módulo: alguns módulos (como o JwtModule)
-// leem variáveis de ambiente no momento em que são importados (ver #104).
+// Carrega o .env antes dos módulos para disponibilizar a configuração
+// durante a inicialização da aplicação (ver #104).
 import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';

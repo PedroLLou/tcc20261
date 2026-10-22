@@ -102,6 +102,7 @@ backend/
     ├── prisma.module.ts      ← módulo Prisma (injeção de dependência)
     ├── prisma.service.ts     ← serviço Prisma (acesso ao client)
     ├── prisma-audit.extension.ts ← extensão do Prisma que alimenta a auditoria
+    ├── config/               ← leitura e validação de configuração compartilhada
     ├── controllers/          ← entrada da API
     ├── dto/                  ← formato dos dados da API
     ├── interceptors/         ← interceptors globais do NestJS
@@ -115,6 +116,10 @@ backend/
 
 Arquitetura em camadas decidida na reunião de 04/04/2026:
 
+- **`config/`** — leitura e validação de configuração compartilhada entre
+  componentes. `jwt.config.ts` exige a chave JWT usada pelo módulo de
+  autenticação e pela estratégia de validação. Não é regra de negócio nem
+  acesso a dados, por isso fica fora de `services/` e `repositories/`.
 - **`controllers/`** — recebe requisição HTTP, valida dados básicos, delega
   ao service. Não contém regra de negócio.
 - **`services/`** — lógica de negócio, intermediário entre controller e
