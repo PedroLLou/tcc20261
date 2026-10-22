@@ -31,6 +31,16 @@
 $ npm install
 ```
 
+## Configuração do JWT
+
+Copie `.env.example` para `backend/.env` e preencha `JWT_SECRET` com um valor
+longo e aleatório. A API recusa a inicialização se a variável estiver ausente,
+vazia ou contiver apenas espaços; não há chave padrão. O valor configurado é
+usado para assinar e validar os tokens e deve ser o mesmo nas instâncias da API.
+
+Os comandos de inicialização carregam o `.env` antes dos módulos. A validade dos
+tokens continua sendo de 24 horas. Não versione o `.env` real nem sua chave.
+
 ## Compile and run the project
 
 ```bash
