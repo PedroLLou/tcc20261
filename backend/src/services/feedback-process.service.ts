@@ -139,8 +139,13 @@ export class FeedbackProcessService {
     });
   }
 
-  async delete(id: number) {
-    await this.findOne(id);
+  async delete(id: number, actorId: number, actorRole: string) {
+    const current = await this.findOne(id);
+    if (actorRole === 'ADMIN_LEADER' && current.ownerId !== actorId) {
+      throw new ForbiddenException(
+        'Líderes só podem excluir os próprios processos.',
+      );
+    }
     await this.processes.delete(id);
     return { id };
   }
