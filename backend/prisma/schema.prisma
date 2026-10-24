@@ -75,6 +75,7 @@ model FeedbackSession {
   id        Int             @id @default(autoincrement())
   processId Int
   process   FeedbackProcess @relation(fields: [processId], references: [id], onDelete: Cascade)
+  objective String?
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
 
