@@ -29,7 +29,7 @@ interface ProcessPanelProps {
   deletingProcessId: number | null;
   notice?: string;
   currentUserId?: number;
-  creatingSessionProcessId?: number | null;
+  creatingSessionProcessIds?: number[];
   onCreate: () => void;
   onSelect: (process: FeedbackProcess) => void;
   onDelete: (process: FeedbackProcess) => void;
@@ -44,7 +44,7 @@ export const ProcessPanel: React.FC<ProcessPanelProps> = ({
   deletingProcessId,
   notice,
   currentUserId,
-  creatingSessionProcessId,
+  creatingSessionProcessIds,
   onCreate,
   onSelect,
   onDelete,
@@ -81,7 +81,7 @@ export const ProcessPanel: React.FC<ProcessPanelProps> = ({
         processes={processes}
         deletingProcessId={deletingProcessId}
         currentUserId={currentUserId}
-        creatingSessionProcessId={creatingSessionProcessId}
+        creatingSessionProcessIds={creatingSessionProcessIds}
         onSelect={onSelect}
         onDelete={onDelete}
         onCreateSession={onCreateSession}

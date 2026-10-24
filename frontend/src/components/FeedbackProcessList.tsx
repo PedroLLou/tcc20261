@@ -6,7 +6,7 @@ interface FeedbackProcessListProps {
   processes: FeedbackProcess[];
   deletingProcessId: number | null;
   currentUserId?: number;
-  creatingSessionProcessId?: number | null;
+  creatingSessionProcessIds?: number[];
   onSelect: (process: FeedbackProcess) => void;
   onDelete: (process: FeedbackProcess) => void;
   onCreateSession?: (process: FeedbackProcess) => void;
@@ -16,7 +16,7 @@ const FeedbackProcessList: React.FC<FeedbackProcessListProps> = ({
   processes,
   deletingProcessId,
   currentUserId,
-  creatingSessionProcessId = null,
+  creatingSessionProcessIds = [],
   onSelect,
   onDelete,
   onCreateSession,
@@ -34,8 +34,8 @@ const FeedbackProcessList: React.FC<FeedbackProcessListProps> = ({
           </span>
         </button>
         {onCreateSession && process.status === 'PLANNED' && process.ownerId === currentUserId && (
-          <button className="process-session-button" type="button" disabled={creatingSessionProcessId === process.id} onClick={() => onCreateSession(process)}>
-            {creatingSessionProcessId === process.id ? 'Criando...' : 'Criar sessão'}
+          <button className="process-session-button" type="button" disabled={creatingSessionProcessIds.includes(process.id)} onClick={() => onCreateSession(process)}>
+            {creatingSessionProcessIds.includes(process.id) ? 'Criando...' : 'Criar sessão'}
           </button>
         )}
         <button className="process-delete-button" type="button" disabled={deletingProcessId === process.id} onClick={() => onDelete(process)}>

@@ -27,14 +27,14 @@ describe('FeedbackProcessList', () => {
 
   const renderList = (
     process: FeedbackProcess,
-    creatingSessionProcessId: number | null = null,
+    creatingSessionProcessIds: number[] = [],
   ) =>
     render(
       <FeedbackProcessList
         processes={[process]}
         deletingProcessId={null}
         currentUserId={7}
-        creatingSessionProcessId={creatingSessionProcessId}
+        creatingSessionProcessIds={creatingSessionProcessIds}
         onSelect={onSelect}
         onDelete={onDelete}
         onCreateSession={onCreateSession}
@@ -73,7 +73,7 @@ describe('FeedbackProcessList', () => {
   });
 
   it('deve desabilitar o botão enquanto a sessão é criada', () => {
-    renderList(buildProcess(), 3);
+    renderList(buildProcess(), [3]);
 
     expect(screen.getByRole('button', { name: 'Criando...' })).toBeDisabled();
   });

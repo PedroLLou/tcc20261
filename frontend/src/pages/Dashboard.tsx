@@ -16,7 +16,7 @@ const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
   const [deletingProcessId, setDeletingProcessId] = useState<number | null>(null);
   const [processActionError, setProcessActionError] = useState('');
-  const [creatingSessionProcessId, setCreatingSessionProcessId] = useState<number | null>(null);
+  const [creatingSessionProcessIds, setCreatingSessionProcessIds] = useState<number[]>([]);
   const [sessionNotice, setSessionNotice] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [selectedProcess, setSelectedProcess] = useState<FeedbackProcess | null>(null);
@@ -57,7 +57,7 @@ const Dashboard: React.FC = () => {
   };
 
   const createSession = async (process: FeedbackProcess) => {
-    setCreatingSessionProcessId(process.id);
+    setCreatingSessionProcessIds((ids) => [...ids, process.id]);
     setProcessActionError('');
     setSessionNotice('');
     try {
@@ -66,7 +66,7 @@ const Dashboard: React.FC = () => {
     } catch {
       setProcessActionError('Não foi possível criar a sessão. Tente novamente.');
     } finally {
-      setCreatingSessionProcessId(null);
+      setCreatingSessionProcessIds((ids) => ids.filter((id) => id !== process.id));
     }
   };
 
@@ -103,7 +103,7 @@ const Dashboard: React.FC = () => {
                 deletingProcessId={deletingProcessId}
                 notice={sessionNotice}
                 currentUserId={user.id}
-                creatingSessionProcessId={creatingSessionProcessId}
+                creatingSessionProcessIds={creatingSessionProcessIds}
                 onCreate={() => setIsCreating(true)}
                 onSelect={setSelectedProcess}
                 onDelete={(process) => void deleteProcess(process)}
