@@ -341,7 +341,8 @@
 }
 
 .process-create-button,
-.process-open-button {
+.process-open-button,
+.process-session-button {
   min-height: 40px;
   padding: 0 14px;
   border: 1px solid var(--color-primary);
@@ -358,17 +359,31 @@
   min-height: 44px;
 }
 
+.process-open-button,
+.process-session-button {
+  min-height: 32px;
+  padding: 0 8px;
+  background: #fff;
+  color: var(--color-primary);
+  font-size: 12px;
+}
+
 .process-open-button {
   min-height: 34px;
   padding: 0 10px;
-  background: #fff;
-  color: var(--color-primary);
+  font-size: inherit;
 }
 
 .process-create-button:hover,
-.process-open-button:hover {
+.process-open-button:hover,
+.process-session-button:hover:not(:disabled) {
   background: var(--color-primary-dark);
   color: #fff;
+}
+
+.process-session-button:disabled {
+  cursor: wait;
+  opacity: 0.6;
 }
 
 .process-list {
@@ -382,7 +397,7 @@
 
 .process-list-item {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 8px;
   padding: 13px 0;
@@ -461,6 +476,13 @@
 
 .process-list-error {
   color: #b42318;
+}
+
+.process-list-notice {
+  margin: 0;
+  padding: 20px 0 6px;
+  color: var(--color-primary);
+  font-weight: 600;
 }
 
 .user-management-panel {

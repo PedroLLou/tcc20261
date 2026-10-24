@@ -45,6 +45,7 @@ erDiagram
     Team |o--o{ User : "agrupa"
     User ||--o{ FeedbackProcess : "é dono de"
     User |o--o{ FeedbackProcess : "participa de"
+    FeedbackProcess ||--o{ FeedbackSession : "tem"
 
     Team {
         int id PK
@@ -74,6 +75,12 @@ erDiagram
         FeedbackProcessStatus status
         int ownerId FK
         int participantId FK "opcional"
+        timestamp createdAt
+        timestamp updatedAt
+    }
+    FeedbackSession {
+        int id PK
+        int processId FK
         timestamp createdAt
         timestamp updatedAt
     }
@@ -140,6 +147,14 @@ colunas gravadas pelo Prisma, fica em UTC.
 | `participantId` | `INTEGER` | sim | FK → `User.id` (membro avaliado), `ON DELETE SET NULL`. Indexada |
 | `createdAt` / `updatedAt` | `TIMESTAMP(3)` | não | |
 
+**`FeedbackSession`**: sessões de *feedback* criadas dentro de um processo planejado.
+
+| Coluna | Tipo | Nulo | Regras |
+|---|---|---|---|
+| `id` | `SERIAL` | não | Chave primária |
+| `processId` | `INTEGER` | não | FK → `FeedbackProcess.id`, `ON DELETE CASCADE`. Indexada. A API só cria sessão em processo `PLANNED` do próprio líder |
+| `createdAt` / `updatedAt` | `TIMESTAMP(3)` | não | |
+
 **`AuditLog`**: registro imutável das alterações, gravado só por *trigger*.
 
 | Coluna | Tipo | Nulo | Regras |
@@ -163,7 +178,7 @@ do banco:
 | Objeto | Tipo | Função |
 |---|---|---|
 | `audit_record_change()` | Função de *trigger* (`SECURITY DEFINER`) | Grava cada alteração na `AuditLog` |
-| `audit_trigger` em `User`, `Team` e `FeedbackProcess` | *Trigger* `AFTER ... FOR EACH ROW` | Chama a função acima |
+| `audit_trigger` em `User`, `Team`, `FeedbackProcess` e `FeedbackSession` | *Trigger* `AFTER ... FOR EACH ROW` | Chama a função acima |
 | `audit_log_block_changes()` e os *triggers* `AuditLog_block_*` | Função e *triggers* `BEFORE` | Impedem UPDATE, DELETE e TRUNCATE na `AuditLog` |
 | `audit_enable(tabela)` | Função | Ativa a auditoria numa tabela nova |
 | `audit_trusted_role()` | Função | Diz qual usuário de banco é a API (ver [`docs/auditoria.md`](auditoria.md), seção 5) |
@@ -175,6 +190,7 @@ Decisões que vale conhecer:
 - **`criteria`** é uma coluna do tipo *array*. Isso fere a 1ª forma normal (atributo multivalorado). Uma tabela própria seria o modelo normalizado; o *array* simplifica e atende ao uso atual.
 - **`age`** guarda a idade, que muda com o tempo. Guardar a data de nascimento evitaria dados desatualizados (ver a análise de segurança).
 - **Exclusão de usuário em cascata:** apagar o dono apaga os processos dele (#108). A auditoria preserva uma cópia do que foi apagado.
+- **Exclusão de processo em cascata:** apagar o processo apaga as sessões dele.
 
 ---
 

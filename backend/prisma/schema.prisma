@@ -63,11 +63,22 @@ model FeedbackProcess {
   owner         User                  @relation("FeedbackProcessOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   participantId Int?
   participant   User?                 @relation("FeedbackProcessParticipant", fields: [participantId], references: [id], onDelete: SetNull)
+  sessions      FeedbackSession[]
   createdAt     DateTime              @default(now())
   updatedAt     DateTime              @updatedAt
 
   @@index([ownerId])
   @@index([participantId])
+}
+
+model FeedbackSession {
+  id        Int             @id @default(autoincrement())
+  processId Int
+  process   FeedbackProcess @relation(fields: [processId], references: [id], onDelete: Cascade)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@index([processId])
 }
 
 // ---------------------------------------------------------------------------
