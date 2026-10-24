@@ -60,6 +60,22 @@ describe('Dashboard', () => {
     expect(createMock).toHaveBeenCalledWith(3);
   });
 
+  it('deve abrir o campo de objetivo da sessão criada e salvar o objetivo', async () => {
+    const defineMock = feedbackSessionService.defineObjective as jest.Mock;
+    createMock.mockResolvedValue({ id: 1, processId: 3, objective: null });
+    defineMock.mockResolvedValue({ id: 1, processId: 3, objective: 'Alinhar metas' });
+    render(<Dashboard />);
+
+    fireEvent.click(sessionButtons()[0]);
+    fireEvent.change(await screen.findByLabelText('Objetivo da sessão'), {
+      target: { value: 'Alinhar metas' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar objetivo' }));
+
+    expect(await screen.findByText('Objetivo da sessão salvo.')).toBeInTheDocument();
+    expect(defineMock).toHaveBeenCalledWith(1, 'Alinhar metas');
+  });
+
   it('deve mostrar o erro quando a sessão não pode ser criada', async () => {
     createMock.mockRejectedValue(new Error('falha'));
     render(<Dashboard />);
