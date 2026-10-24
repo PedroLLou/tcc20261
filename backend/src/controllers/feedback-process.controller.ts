@@ -30,7 +30,9 @@ type AuthenticatedRequest = Request & {
 @UseGuards(JwtAuthGuard)
 @Controller('feedback-processes')
 export class FeedbackProcessController {
-  constructor(private readonly feedbackProcessService: FeedbackProcessService) {}
+  constructor(
+    private readonly feedbackProcessService: FeedbackProcessService,
+  ) {}
 
   @Get('participants')
   @Roles('ADMIN_LEADER', 'ADMIN_RH')
@@ -82,7 +84,10 @@ export class FeedbackProcessController {
   @Post(':id/submit')
   @Roles('ADMIN_LEADER', 'ADMIN_RH')
   @UseGuards(RolesGuard)
-  submitForValidation(@Param('id', ParseIntPipe) id: number, @Req() request: AuthenticatedRequest) {
+  submitForValidation(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() request: AuthenticatedRequest,
+  ) {
     return this.feedbackProcessService.submitForValidation(
       id,
       request.user.id,
@@ -120,7 +125,14 @@ export class FeedbackProcessController {
   @Delete(':id')
   @Roles('ADMIN_LEADER', 'ADMIN_RH')
   @UseGuards(RolesGuard)
-  delete(@Param('id', ParseIntPipe) id: number) {
-    return this.feedbackProcessService.delete(id);
+  delete(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.feedbackProcessService.delete(
+      id,
+      request.user.id,
+      request.user.role,
+    );
   }
 }
