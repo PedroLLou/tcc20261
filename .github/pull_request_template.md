@@ -1,43 +1,43 @@
-## Descrição
+<!-- Proposta de template para o TCC2, atualizada em 17/10/2026 e ainda em discussão no PR #100. -->
 
-<!-- Descreva em 2-4 linhas o que este PR faz e por quê. -->
+## O que mudou e por quê?
+
+<!-- Explique o problema, a solução e o resultado esperado em poucas linhas. -->
 
 ## Issue relacionada
 
-<!-- Se houver issue associada, use `Closes #N` para fechá-la no merge.
-     Se não houver, pode apagar esta seção ou escrever "N/A". -->
+<!-- Use Refs #N; se não houver issue, explique o motivo. Use Closes #N apenas quando o merge concluir toda a tarefa e o grupo tiver combinado o fechamento automático. -->
 
-Closes #
+Refs #
 
-## Tipo de mudança
+## Testes e verificações
 
-- [ ] `feat` — nova funcionalidade
-- [ ] `fix` — correção de bug
-- [ ] `refactor` — refatoração sem mudança de comportamento
-- [ ] `docs` — documentação
-- [ ] `test` — testes
-- [ ] `chore` — manutenção (deps, configs, scripts)
-- [ ] `ci` — pipeline de CI/CD
-- [ ] Outro: 
+<!-- Informe comportamentos cobertos, comandos ou passos, resultados e commit verificado. Identifique testes manuais, cenários sem cobertura e limitações. Em correções, indique a regressão coberta ou justifique sua ausência. Para documentação, descreva a conferência de conteúdo, links e diagramas. Não se aplica? Explique brevemente. -->
 
-## Como testar
+## Arquitetura
 
-<!-- Passos que o revisor deve seguir para validar a mudança localmente. -->
+<!-- Cite a seção, diagrama ou contrato pertinente; explique a aderência, componentes/contratos afetados e eventuais desvios. Não se aplica? Explique brevemente. -->
 
-1. 
-2. 
-3. 
+## Revisão e apontamentos
+
+Revisor humano:
+
+<!-- O autor trata cada apontamento humano ou do Hermes: corrigido (commit/verificação), não se aplica (motivo/evidência) ou pendente (encaminhamento/responsável). Identifique problema e commit analisado, pois o comentário do Hermes pode mudar. O revisor confere a versão final; IA não conta como aprovação. Se ainda não houve revisão, informe isso. -->
+
+## O que falta?
+
+<!-- Registre limitações, falhas de checks com links e encaminhamento, ou escreva "Nada dentro do escopo deste PR". -->
 
 ## Checklist
 
-- [ ] Segui o [workflow de desenvolvimento](../docs/workflow.md)
-- [ ] Título do PR segue Conventional Commits (`tipo(escopo): descrição`)
-- [ ] Branch atualizada com o `main`
-- [ ] Testes adicionados ou atualizados (quando aplicável)
-- [ ] Testes existentes continuam passando localmente
-- [ ] Documentação atualizada (quando aplicável)
-- [ ] Fiz auto-revisão do meu próprio código antes de pedir revisão
+- [ ] Li o [workflow](https://github.com/PedroLLou/tcc20261/blob/main/docs/workflow.md)
+- [ ] Expliquei a tarefa e o resultado esperado
+- [ ] O título segue o formato `tipo(escopo): descrição`
+- [ ] Conferi meu próprio diff
+- [ ] Registrei as verificações do commit atual, as limitações e a referência de arquitetura aplicável
+- [ ] Atualizei a documentação quando necessário
+- [ ] Pedi revisão de outro integrante
 
-## Screenshots / evidências (opcional)
+## Imagens, se necessário
 
-<!-- Se a mudança afeta UI ou comportamento visível, cole prints ou gifs aqui. -->
+<!-- Para mudanças visuais, inclua imagens que ajudem a entender o resultado. -->
