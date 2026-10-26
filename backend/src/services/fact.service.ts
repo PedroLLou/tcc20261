@@ -124,7 +124,7 @@ export class FactService {
       relatedUser?: { connect: { id: number } };
     } = {};
 
-    if (dto.sessionId !== undefined) {
+    if (dto.sessionId != null) {
       const session = await this.sessions.findById(dto.sessionId);
       if (!session) throw new NotFoundException('Sessão não encontrada.');
       const { ownerId, participantId } = session.process;
@@ -136,7 +136,7 @@ export class FactService {
       relations.session = { connect: { id: dto.sessionId } };
     }
 
-    if (dto.relatedUserId !== undefined) {
+    if (dto.relatedUserId != null) {
       const relatedUser = await this.users.findById(dto.relatedUserId);
       if (!relatedUser) {
         throw new NotFoundException('Pessoa associada não encontrada.');
