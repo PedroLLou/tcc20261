@@ -18,6 +18,23 @@ interface FactCreationProps {
   onSaved: () => void;
 }
 
+const MAX_ATTACHMENTS = 10;
+const MAX_ATTACHMENT_SIZE = 50 * 1024 * 1024;
+const ALLOWED_ATTACHMENT_TYPES = new Set([
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "image/gif",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "video/mp4",
+  "video/webm",
+  "video/quicktime",
+]);
+
 const FactCreation: React.FC<FactCreationProps> = ({ onSaved }) => {
   const [description, setDescription] = useState("");
   const [relatedUserId, setRelatedUserId] = useState("");
@@ -28,6 +45,32 @@ const FactCreation: React.FC<FactCreationProps> = ({ onSaved }) => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const selectFiles = (selectedFiles: File[]) => {
+    setError("");
+    if (selectedFiles.length > MAX_ATTACHMENTS) {
+      setFiles([]);
+      setError("É possível anexar no máximo 10 arquivos.");
+      return;
+    }
+
+    const invalidFile = selectedFiles.find(
+      (file) =>
+        !ALLOWED_ATTACHMENT_TYPES.has(file.type) ||
+        file.size > MAX_ATTACHMENT_SIZE,
+    );
+    if (invalidFile) {
+      setFiles([]);
+      setError(
+        invalidFile.size > MAX_ATTACHMENT_SIZE
+          ? "Cada anexo deve ter no máximo 50 MB."
+          : `O formato do arquivo "${invalidFile.name}" não é permitido.`,
+      );
+      return;
+    }
+
+    setFiles(selectedFiles);
+  };
 
   useEffect(() => {
     userService
@@ -117,8 +160,10 @@ const FactCreation: React.FC<FactCreationProps> = ({ onSaved }) => {
             ref={fileInputRef}
             type="file"
             multiple
-            accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx"
-            onChange={(event) => setFiles(Array.from(event.target.files ?? []))}
+            accept="image/gif,image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime,.pdf,.doc,.docx,.xls,.xlsx"
+            onChange={(event) =>
+              selectFiles(Array.from(event.target.files ?? []))
+            }
             disabled={isSaving}
           />
           <span className="fact-create-hint">

@@ -47,4 +47,37 @@ describe("FactCreation", () => {
     ]);
     expect(createMock).toHaveBeenNthCalledWith(2, "Segundo fato", null, [file]);
   });
+
+  it("recusa uma imagem BMP antes do envio", () => {
+    render(<FactCreation onSaved={jest.fn()} />);
+    const file = new File(["bitmap"], "imagem.bmp", { type: "image/bmp" });
+    const input = screen.getByLabelText(
+      "Anexos (opcionais)",
+    ) as HTMLInputElement;
+
+    fireEvent.change(input, { target: { files: [file] } });
+
+    expect(
+      screen.getByText('O formato do arquivo "imagem.bmp" não é permitido.'),
+    ).toBeInTheDocument();
+    expect(createMock).not.toHaveBeenCalled();
+  });
+
+  it("aceita uma imagem PNG", async () => {
+    render(<FactCreation onSaved={jest.fn()} />);
+    const file = new File(["png"], "imagem.png", { type: "image/png" });
+    const input = screen.getByLabelText(
+      "Anexos (opcionais)",
+    ) as HTMLInputElement;
+
+    fireEvent.change(input, { target: { files: [file] } });
+    fireEvent.change(screen.getByLabelText("Descrição do fato"), {
+      target: { value: "Fato com imagem" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar registro" }));
+
+    await waitFor(() =>
+      expect(createMock).toHaveBeenCalledWith("Fato com imagem", null, [file]),
+    );
+  });
 });
