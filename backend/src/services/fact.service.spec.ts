@@ -1,4 +1,8 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { FactService } from './fact.service';
 import type { FactRepository } from '../repositories/fact.repository';
 import type { FeedbackSessionRepository } from '../repositories/feedback-session.repository';
@@ -24,7 +28,10 @@ describe('FactService', () => {
   });
 
   it('registra um fato textual com pessoa, sessão e anexos opcionais', async () => {
-    sessions.findById.mockResolvedValue({ id: 4 });
+    sessions.findById.mockResolvedValue({
+      id: 4,
+      process: { ownerId: 3, participantId: 8 },
+    });
     users.findById.mockResolvedValue({ id: 8 });
     facts.create.mockResolvedValue({ id: 1, description: 'Fato registrado' });
 
@@ -117,6 +124,18 @@ describe('FactService - validação', () => {
     await expect(
       service.create(3, { description: 'Fato', relatedUserId: 99 }),
     ).rejects.toThrow(NotFoundException);
+    expect(facts.create).not.toHaveBeenCalled();
+  });
+
+  it('recusa fato associado a sessão de outro usuário', async () => {
+    sessions.findById.mockResolvedValue({
+      id: 4,
+      process: { ownerId: 10, participantId: 8 },
+    });
+
+    await expect(
+      service.create(3, { description: 'Fato', sessionId: 4 }),
+    ).rejects.toThrow(ForbiddenException);
     expect(facts.create).not.toHaveBeenCalled();
   });
 

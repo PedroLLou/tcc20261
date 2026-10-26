@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import userService from "../services/userService";
 import factService from "../services/factService";
@@ -27,6 +27,7 @@ const FactCreation: React.FC<FactCreationProps> = ({ onSaved }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     userService
@@ -51,6 +52,7 @@ const FactCreation: React.FC<FactCreationProps> = ({ onSaved }) => {
       setDescription("");
       setRelatedUserId("");
       setFiles([]);
+      if (fileInputRef.current) fileInputRef.current.value = "";
       setSuccess("Fato registrado com sucesso.");
       onSaved();
     } catch (requestError: unknown) {
@@ -112,6 +114,7 @@ const FactCreation: React.FC<FactCreationProps> = ({ onSaved }) => {
           <label htmlFor="fact-attachments">Anexos (opcionais)</label>
           <input
             id="fact-attachments"
+            ref={fileInputRef}
             type="file"
             multiple
             accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx"

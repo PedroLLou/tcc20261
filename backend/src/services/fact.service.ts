@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -47,7 +48,7 @@ export class FactService {
     }
 
     this.validateAttachments(files);
-    const relations = await this.validateRelations(dto);
+    const relations = await this.validateRelations(authorId, dto);
 
     return this.facts.create({
       description,
@@ -117,7 +118,7 @@ export class FactService {
     }
   }
 
-  private async validateRelations(dto: CreateFactDto) {
+  private async validateRelations(authorId: number, dto: CreateFactDto) {
     const relations: {
       session?: { connect: { id: number } };
       relatedUser?: { connect: { id: number } };
@@ -126,6 +127,12 @@ export class FactService {
     if (dto.sessionId !== undefined) {
       const session = await this.sessions.findById(dto.sessionId);
       if (!session) throw new NotFoundException('Sessão não encontrada.');
+      const { ownerId, participantId } = session.process;
+      if (authorId !== ownerId && authorId !== participantId) {
+        throw new ForbiddenException(
+          'Você não pode registrar fatos nesta sessão.',
+        );
+      }
       relations.session = { connect: { id: dto.sessionId } };
     }
 
