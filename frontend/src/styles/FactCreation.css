@@ -1,0 +1,162 @@
+.fact-create-panel {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 28px 32px 32px;
+  border: 1px solid #e3e5ec;
+  border-top: 3px solid var(--color-primary);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 3px 14px rgba(25, 30, 50, 0.06);
+}
+
+.fact-create-eyebrow {
+  margin: 0 0 8px;
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.fact-create-panel h2 {
+  margin: 0;
+  color: #242638;
+  font-size: 24px;
+  line-height: 1.3;
+}
+
+.fact-create-intro {
+  margin: 8px 0 24px;
+  color: #626777;
+  font-size: 14px;
+}
+
+.fact-create-form {
+  display: grid;
+  gap: 20px;
+}
+
+.fact-create-field {
+  display: grid;
+  gap: 7px;
+}
+
+.fact-create-field label {
+  color: #333648;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.fact-create-field input,
+.fact-create-field textarea,
+.fact-create-field select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--field-height);
+  padding: 11px 12px;
+  border: 1px solid #cfd2dc;
+  border-radius: 5px;
+  background: #fff;
+  color: #252738;
+  font: inherit;
+}
+
+.fact-create-field textarea {
+  min-height: 150px;
+  resize: vertical;
+}
+
+.fact-create-field input[type='file'] {
+  padding: 9px;
+}
+
+.fact-create-field input:focus,
+.fact-create-field textarea:focus,
+.fact-create-field select:focus {
+  border-color: var(--color-primary);
+  outline: 3px solid var(--color-primary-ring);
+}
+
+.fact-create-hint {
+  color: #747887;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.fact-file-list {
+  display: grid;
+  gap: 7px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fact-file-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid #e3e5ec;
+  border-radius: 5px;
+  color: #344842;
+  font-size: 13px;
+}
+
+.fact-file-list small {
+  color: #747887;
+}
+
+.fact-create-button {
+  min-height: 42px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 5px;
+  background: var(--color-primary);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+
+.fact-create-button:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+}
+
+.fact-create-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.fact-create-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.fact-create-error {
+  margin: 0;
+  color: #b42318;
+  font-size: 14px;
+}
+
+.fact-create-success {
+  margin: 0;
+  color: #276749;
+  font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  .fact-create-panel {
+    padding: 22px 18px 24px;
+  }
+
+  .fact-create-panel h2 {
+    font-size: 21px;
+  }
+
+  .fact-create-actions {
+    justify-content: stretch;
+  }
+
+  .fact-create-button {
+    flex: 1;
+  }
+}
