@@ -81,6 +81,10 @@ export class FactService {
   }
 
   private validateAttachments(files: FactUpload[]) {
+    if (!Array.isArray(files)) {
+      throw new BadRequestException('Os anexos enviados são inválidos.');
+    }
+
     if (files.length > MAX_ATTACHMENTS) {
       throw new BadRequestException(
         `É possível anexar no máximo ${MAX_ATTACHMENTS} arquivos.`,
@@ -88,7 +92,18 @@ export class FactService {
     }
 
     for (const file of files) {
-      if (!file.originalname.trim() || !file.buffer) {
+      if (
+        !file ||
+        typeof file.originalname !== 'string' ||
+        typeof file.mimetype !== 'string' ||
+        typeof file.size !== 'number' ||
+        !Number.isFinite(file.size) ||
+        !Buffer.isBuffer(file.buffer)
+      ) {
+        throw new BadRequestException('O anexo enviado é inválido.');
+      }
+
+      if (!file.originalname.trim()) {
         throw new BadRequestException('O anexo enviado é inválido.');
       }
       if (file.size > MAX_ATTACHMENT_SIZE) {
