@@ -68,17 +68,30 @@ export class FactService {
   }
 
   async downloadAttachment(
-    authorId: number,
+    viewerId: number,
+    viewerRole: string,
     factId: number,
     attachmentId: number,
   ) {
-    const attachment = await this.facts.findAttachmentForAuthor(
+    const viewer = await this.users.findById(viewerId);
+    if (!viewer) throw new NotFoundException('Usuário não encontrado.');
+
+    const attachment = await this.facts.findAttachmentForViewer(
       factId,
       attachmentId,
-      authorId,
+      viewerId,
+      viewerRole,
+      viewer.teamId,
     );
     if (!attachment) throw new NotFoundException('Anexo não encontrado.');
     return attachment;
+  }
+
+  async list(viewerId: number, viewerRole: string) {
+    const viewer = await this.users.findById(viewerId);
+    if (!viewer) throw new NotFoundException('Usuário não encontrado.');
+
+    return this.facts.listForViewer(viewerId, viewerRole, viewer.teamId);
   }
 
   private validateAttachments(files: FactUpload[]) {

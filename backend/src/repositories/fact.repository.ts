@@ -31,16 +31,46 @@ export class FactRepository {
     return this.prisma.fact.create({ data, select: factSelection });
   }
 
-  findAttachmentForAuthor(
+  listForViewer(
+    viewerId: number,
+    viewerRole: string,
+    viewerTeamId: number | null,
+  ) {
+    return this.prisma.fact.findMany({
+      where: {
+        OR: [
+          { authorId: viewerId },
+          ...(viewerRole === 'ADMIN_RH' ? [{}] : []),
+          ...(viewerRole === 'ADMIN_LEADER' && viewerTeamId !== null
+            ? [{ author: { teamId: viewerTeamId } }]
+            : []),
+        ],
+      },
+      select: factSelection,
+      orderBy: { recordedAt: 'desc' },
+    });
+  }
+
+  findAttachmentForViewer(
     factId: number,
     attachmentId: number,
-    authorId: number,
+    viewerId: number,
+    viewerRole: string,
+    viewerTeamId: number | null,
   ) {
     return this.prisma.factAttachment.findFirst({
       where: {
         id: attachmentId,
         factId,
-        fact: { authorId },
+        fact: {
+          OR: [
+            { authorId: viewerId },
+            ...(viewerRole === 'ADMIN_RH' ? [{}] : []),
+            ...(viewerRole === 'ADMIN_LEADER' && viewerTeamId !== null
+              ? [{ author: { teamId: viewerTeamId } }]
+              : []),
+          ],
+        },
       },
       select: {
         originalName: true,

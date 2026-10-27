@@ -203,3 +203,60 @@ describe('FactService - validação', () => {
     ).rejects.toThrow('falha no banco');
   });
 });
+
+describe('FactService - acesso aos fatos', () => {
+  let service: FactService;
+  let facts: {
+    listForViewer: jest.Mock;
+    findAttachmentForViewer: jest.Mock;
+  };
+  let users: { findById: jest.Mock };
+
+  beforeEach(() => {
+    facts = {
+      listForViewer: jest.fn(),
+      findAttachmentForViewer: jest.fn(),
+    };
+    users = { findById: jest.fn() };
+    service = new FactService(
+      facts as unknown as FactRepository,
+      {} as FeedbackSessionRepository,
+      users as unknown as UserRepository,
+    );
+  });
+
+  it('lista fatos para o usuário autenticado', async () => {
+    users.findById.mockResolvedValue({ id: 7, teamId: 3 });
+    facts.listForViewer.mockResolvedValue([{ id: 1 }]);
+
+    await expect(service.list(7, 'ADMIN_LEADER')).resolves.toEqual([{ id: 1 }]);
+    expect(facts.listForViewer).toHaveBeenCalledWith(7, 'ADMIN_LEADER', 3);
+  });
+
+  it('permite baixar anexo usando o escopo do líder', async () => {
+    users.findById.mockResolvedValue({ id: 7, teamId: 3 });
+    facts.findAttachmentForViewer.mockResolvedValue({
+      originalName: 'evidencia.png',
+    });
+
+    await expect(
+      service.downloadAttachment(7, 'ADMIN_LEADER', 10, 20),
+    ).resolves.toEqual({ originalName: 'evidencia.png' });
+    expect(facts.findAttachmentForViewer).toHaveBeenCalledWith(
+      10,
+      20,
+      7,
+      'ADMIN_LEADER',
+      3,
+    );
+  });
+
+  it('não baixa anexo sem usuário autenticado válido', async () => {
+    users.findById.mockResolvedValue(null);
+
+    await expect(
+      service.downloadAttachment(7, 'ADMIN_LEADER', 10, 20),
+    ).rejects.toThrow(NotFoundException);
+    expect(facts.findAttachmentForViewer).not.toHaveBeenCalled();
+  });
+});

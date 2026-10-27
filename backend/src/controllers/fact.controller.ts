@@ -45,6 +45,11 @@ export class FactController {
     return this.factService.create(request.user.id, dto, files ?? []);
   }
 
+  @Get()
+  list(@Req() request: AuthenticatedRequest) {
+    return this.factService.list(request.user.id, request.user.role);
+  }
+
   @Get(':factId/attachments/:attachmentId')
   download(
     @Req() request: AuthenticatedRequest,
@@ -53,7 +58,12 @@ export class FactController {
     @Res() response: Response,
   ) {
     return this.factService
-      .downloadAttachment(request.user.id, factId, attachmentId)
+      .downloadAttachment(
+        request.user.id,
+        request.user.role,
+        factId,
+        attachmentId,
+      )
       .then((attachment) => {
         response.type(attachment.mimeType);
         response.setHeader(
