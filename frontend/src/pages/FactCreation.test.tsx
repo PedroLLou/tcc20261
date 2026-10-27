@@ -58,7 +58,7 @@ describe("FactCreation", () => {
     fireEvent.change(input, { target: { files: [file] } });
 
     expect(
-      screen.getByText('O formato do arquivo "imagem.bmp" não é permitido.'),
+      screen.getByText(/O formato do arquivo "imagem\.bmp" não é permitido/),
     ).toBeInTheDocument();
     expect(createMock).not.toHaveBeenCalled();
   });
@@ -79,5 +79,36 @@ describe("FactCreation", () => {
     await waitFor(() =>
       expect(createMock).toHaveBeenCalledWith("Fato com imagem", null, [file]),
     );
+  });
+
+  it("bloqueia o envio quando a seleção contém um anexo inválido", () => {
+    render(<FactCreation onSaved={jest.fn()} />);
+    const validFile = new File(["pdf"], "evidencia.pdf", {
+      type: "application/pdf",
+    });
+    const oversizedFile = new File(["video"], "video.mp4", {
+      type: "video/mp4",
+    });
+    Object.defineProperty(oversizedFile, "size", {
+      value: 50 * 1024 * 1024 + 1,
+    });
+    const input = screen.getByLabelText(
+      "Anexos (opcionais)",
+    ) as HTMLInputElement;
+
+    fireEvent.change(input, {
+      target: { files: [validFile, oversizedFile] },
+    });
+    fireEvent.change(screen.getByLabelText("Descrição do fato"), {
+      target: { value: "Fato sem envio parcial" },
+    });
+
+    expect(
+      screen.getByText(/Cada anexo deve ter no máximo 50 MB/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Confirmar registro" }),
+    ).toBeDisabled();
+    expect(createMock).not.toHaveBeenCalled();
   });
 });

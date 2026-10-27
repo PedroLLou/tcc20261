@@ -70,7 +70,7 @@ export class FactController {
           'Content-Disposition',
           `attachment; filename="${encodeURIComponent(attachment.originalName)}"`,
         );
-        response.send(attachment.content);
+        response.send(Buffer.from(attachment.content));
       });
   }
 }

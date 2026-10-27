@@ -43,14 +43,17 @@ const FactCreation: React.FC<FactCreationProps> = ({ onSaved }) => {
   const [isLoadingParticipants, setIsLoadingParticipants] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
+  const [attachmentSelectionError, setAttachmentSelectionError] = useState("");
   const [success, setSuccess] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const selectFiles = (selectedFiles: File[]) => {
     setError("");
+    setAttachmentSelectionError("");
     if (selectedFiles.length > MAX_ATTACHMENTS) {
       setFiles([]);
-      setError("É possível anexar no máximo 10 arquivos.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      setAttachmentSelectionError("É possível anexar no máximo 10 arquivos.");
       return;
     }
 
@@ -61,7 +64,8 @@ const FactCreation: React.FC<FactCreationProps> = ({ onSaved }) => {
     );
     if (invalidFile) {
       setFiles([]);
-      setError(
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      setAttachmentSelectionError(
         invalidFile.size > MAX_ATTACHMENT_SIZE
           ? "Cada anexo deve ter no máximo 50 MB."
           : `O formato do arquivo "${invalidFile.name}" não é permitido.`,
@@ -82,6 +86,7 @@ const FactCreation: React.FC<FactCreationProps> = ({ onSaved }) => {
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (attachmentSelectionError) return;
     setError("");
     setSuccess("");
     setIsSaving(true);
@@ -179,6 +184,11 @@ const FactCreation: React.FC<FactCreationProps> = ({ onSaved }) => {
               ))}
             </ul>
           )}
+          {attachmentSelectionError && (
+            <p className="fact-create-error" role="alert">
+              {attachmentSelectionError} Selecione os anexos novamente.
+            </p>
+          )}
         </div>
 
         {error && (
@@ -196,7 +206,7 @@ const FactCreation: React.FC<FactCreationProps> = ({ onSaved }) => {
           <button
             className="fact-create-button"
             type="submit"
-            disabled={isSaving}
+            disabled={isSaving || Boolean(attachmentSelectionError)}
           >
             {isSaving ? "Registrando..." : "Confirmar registro"}
           </button>
