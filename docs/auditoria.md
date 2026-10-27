@@ -35,6 +35,10 @@ Consequências:
   `source = DATABASE`, o usuário do banco (`dbUser`) e o IP da conexão.
 - **Senhas nunca vão para a auditoria.** A coluna `password` aparece como
   `[PROTEGIDO]`, ou `[ALTERADO]` quando a senha muda.
+- **Conteúdo binário não é copiado.** Toda coluna `BYTEA`, como o conteúdo de
+  um anexo, aparece como `{"sha256": "...", "bytes": N}`. O *hash* identifica
+  exatamente o arquivo gravado, sem guardar uma cópia dele numa tabela que não
+  pode ser limpa.
 - **Registros imutáveis.** `UPDATE`, `DELETE` e `TRUNCATE` em `"AuditLog"`
   são bloqueados por trigger.
 - **Sem chave estrangeira para `User`.** O histórico sobrevive à exclusão do
@@ -71,6 +75,8 @@ SELECT audit_enable('"NomeDaTabela"');
 
 Se a tabela tiver colunas sensíveis além de `password`, avise o responsável
 pela camada de banco para incluí-las na lista `sensitive_keys` do trigger.
+Colunas `BYTEA` não precisam de aviso: são detectadas pelo tipo e registradas
+como *hash* e tamanho.
 
 ---
 
