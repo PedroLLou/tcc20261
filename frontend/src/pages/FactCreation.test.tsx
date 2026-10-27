@@ -90,7 +90,7 @@ describe("FactCreation", () => {
       type: "video/mp4",
     });
     Object.defineProperty(oversizedFile, "size", {
-      value: 50 * 1024 * 1024 + 1,
+      value: 10 * 1024 * 1024 + 1,
     });
     const input = screen.getByLabelText(
       "Anexos (opcionais)",
@@ -104,7 +104,7 @@ describe("FactCreation", () => {
     });
 
     expect(
-      screen.getByText(/Cada anexo deve ter no máximo 50 MB/),
+      screen.getByText(/Cada anexo deve ter no máximo 10 MB/),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Confirmar registro" }),

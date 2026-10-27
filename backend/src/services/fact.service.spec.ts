@@ -167,8 +167,8 @@ describe('FactService - validação', () => {
     expect(facts.create).not.toHaveBeenCalled();
   });
 
-  it('recusa mais de 10 anexos', async () => {
-    const files = Array.from({ length: 11 }, (_, index) => ({
+  it('recusa mais de 5 anexos', async () => {
+    const files = Array.from({ length: 6 }, (_, index) => ({
       originalname: `arquivo-${index}.png`,
       mimetype: 'image/png',
       size: 100,
@@ -181,13 +181,13 @@ describe('FactService - validação', () => {
     expect(facts.create).not.toHaveBeenCalled();
   });
 
-  it('recusa arquivo maior que 50 MB', async () => {
+  it('recusa arquivo maior que 10 MB', async () => {
     await expect(
       service.create(3, { description: 'Fato' }, [
         {
           originalname: 'video.mp4',
           mimetype: 'video/mp4',
-          size: 50 * 1024 * 1024 + 1,
+          size: 10 * 1024 * 1024 + 1,
           buffer: Buffer.from('video'),
         },
       ]),

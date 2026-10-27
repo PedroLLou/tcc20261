@@ -18,8 +18,8 @@ interface FactCreationProps {
   onSaved: () => void;
 }
 
-const MAX_ATTACHMENTS = 10;
-const MAX_ATTACHMENT_SIZE = 50 * 1024 * 1024;
+const MAX_ATTACHMENTS = 5;
+const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024;
 const ALLOWED_ATTACHMENT_TYPES = new Set([
   "application/pdf",
   "application/msword",
@@ -53,7 +53,7 @@ const FactCreation: React.FC<FactCreationProps> = ({ onSaved }) => {
     if (selectedFiles.length > MAX_ATTACHMENTS) {
       setFiles([]);
       if (fileInputRef.current) fileInputRef.current.value = "";
-      setAttachmentSelectionError("É possível anexar no máximo 10 arquivos.");
+      setAttachmentSelectionError("É possível anexar no máximo 5 arquivos.");
       return;
     }
 
@@ -67,7 +67,7 @@ const FactCreation: React.FC<FactCreationProps> = ({ onSaved }) => {
       if (fileInputRef.current) fileInputRef.current.value = "";
       setAttachmentSelectionError(
         invalidFile.size > MAX_ATTACHMENT_SIZE
-          ? "Cada anexo deve ter no máximo 50 MB."
+          ? "Cada anexo deve ter no máximo 10 MB."
           : `O formato do arquivo "${invalidFile.name}" não é permitido.`,
       );
       return;
@@ -172,7 +172,7 @@ const FactCreation: React.FC<FactCreationProps> = ({ onSaved }) => {
             disabled={isSaving}
           />
           <span className="fact-create-hint">
-            Você pode enviar até 10 arquivos, com no máximo 50 MB cada.
+            Você pode enviar até 5 arquivos, com no máximo 10 MB cada.
           </span>
           {files.length > 0 && (
             <ul className="fact-file-list">

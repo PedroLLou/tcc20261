@@ -32,9 +32,9 @@ export class FactController {
 
   @Post()
   @UseInterceptors(
-    FilesInterceptor('files', 10, {
+    FilesInterceptor('files', 5, {
       storage: memoryStorage(),
-      limits: { fileSize: 50 * 1024 * 1024 },
+      limits: { fileSize: 10 * 1024 * 1024 },
     }),
   )
   create(

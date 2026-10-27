@@ -16,8 +16,8 @@ export interface FactUpload {
   buffer: Buffer;
 }
 
-const MAX_ATTACHMENT_SIZE = 50 * 1024 * 1024;
-const MAX_ATTACHMENTS = 10;
+const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024;
+const MAX_ATTACHMENTS = 5;
 const ALLOWED_MIME_TYPES = new Set([
   'application/pdf',
   'application/msword',
@@ -121,7 +121,7 @@ export class FactService {
         throw new BadRequestException('O anexo enviado é inválido.');
       }
       if (file.size > MAX_ATTACHMENT_SIZE) {
-        throw new BadRequestException('Cada anexo deve ter no máximo 50 MB.');
+        throw new BadRequestException('Cada anexo deve ter no máximo 10 MB.');
       }
       if (!ALLOWED_MIME_TYPES.has(file.mimetype.toLowerCase())) {
         throw new BadRequestException(
