@@ -164,7 +164,7 @@ colunas gravadas pelo Prisma, fica em UTC.
 | `id` | `SERIAL` | não | Chave primária |
 | `operation` | `AuditOperation` | não | `INSERT`, `UPDATE` ou `DELETE` |
 | `tableName` / `recordId` | `TEXT` | não | Tabela e id do registro alterado. Índice conjunto |
-| `oldData` / `newData` | `JSONB` | sim | Linha antes e depois; a senha aparece como `[PROTEGIDO]` ou `[ALTERADO]` |
+| `oldData` / `newData` | `JSONB` | sim | Linha antes e depois; a senha aparece como `[PROTEGIDO]` ou `[ALTERADO]`; colunas `BYTEA` aparecem como `{"sha256", "bytes"}` |
 | `actorId` / `actorEmail` | `INTEGER` / `TEXT` | sim | Usuário da API que fez a operação. Sem FK. `actorId` indexado |
 | `source` | `AuditSource` | não | `APPLICATION` (pela API) ou `DATABASE` (direto no banco) |
 | `dbUser` | `TEXT` | não | Usuário do PostgreSQL da conexão |

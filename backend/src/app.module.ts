@@ -3,6 +3,8 @@ import { AuditModule } from './modules/audit.module';
 import { AuthModule } from './modules/auth.module';
 import { FeedbackProcessModule } from './modules/feedback-process.module';
 import { FeedbackSessionModule } from './modules/feedback-session.module';
+import { FactModule } from './modules/fact.module';
+import { UserModule } from './modules/user.module';
 import { PrismaModule } from './prisma.module';
 import { LoggerModule } from 'nestjs-pino';
 import { loggerOptions } from './observability/logger';
@@ -16,6 +18,8 @@ import { DatabaseReadiness } from './observability/database-readiness';
     AuthModule,
     FeedbackProcessModule,
     FeedbackSessionModule,
+    FactModule,
+    UserModule,
     AuditModule,
   ],
   controllers: [HealthController],

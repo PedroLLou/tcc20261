@@ -39,6 +39,8 @@ model User {
 
   ownedFeedbackProcesses FeedbackProcess[] @relation("FeedbackProcessOwner")
   receivedFeedbackProcesses FeedbackProcess[] @relation("FeedbackProcessParticipant")
+  authoredFacts Fact[] @relation("FactAuthor")
+  relatedFacts Fact[] @relation("FactRelatedUser")
   @@index([teamId])
 }
 
@@ -76,10 +78,43 @@ model FeedbackSession {
   processId Int
   process   FeedbackProcess @relation(fields: [processId], references: [id], onDelete: Cascade)
   objective String?
+  facts     Fact[]
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
 
   @@index([processId])
+}
+
+model Fact {
+  id            Int               @id @default(autoincrement())
+  authorId      Int
+  author        User              @relation("FactAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  sessionId     Int?
+  session       FeedbackSession?  @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  relatedUserId Int?
+  relatedUser   User?             @relation("FactRelatedUser", fields: [relatedUserId], references: [id], onDelete: SetNull)
+  description   String
+  recordedAt    DateTime          @default(now())
+  attachments   FactAttachment[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([authorId])
+  @@index([sessionId])
+  @@index([relatedUserId])
+}
+
+model FactAttachment {
+  id            Int      @id @default(autoincrement())
+  factId        Int
+  fact          Fact     @relation(fields: [factId], references: [id], onDelete: Cascade)
+  originalName  String
+  mimeType      String
+  size          Int
+  content       Bytes
+  createdAt     DateTime @default(now())
+
+  @@index([factId])
 }
 
 // ---------------------------------------------------------------------------

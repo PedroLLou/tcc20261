@@ -26,7 +26,12 @@ export class FeedbackSessionRepository {
       where: { id },
       select: {
         ...feedbackSessionSelection,
-        process: { select: { ownerId: true } },
+        process: {
+          select: {
+            ownerId: true,
+            participantId: true,
+          },
+        },
       },
     });
   }

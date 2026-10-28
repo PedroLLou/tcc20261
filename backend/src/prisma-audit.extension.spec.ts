@@ -1,4 +1,5 @@
 /* eslint-disable max-lines-per-function */
+import { createHash, randomBytes } from 'crypto';
 import { Client } from 'pg';
 import { PrismaService } from './prisma.service';
 import { AuditContextService } from './services/audit-context.service';
@@ -155,6 +156,73 @@ describeWithDatabase('Auditoria no PostgreSQL (integração)', () => {
     expect(
       JSON.stringify([created.newData, updated.oldData, updated.newData]),
     ).not.toContain('hash');
+  });
+
+  it('deve registrar colunas binárias como hash e tamanho, sem o conteúdo', async () => {
+    const direct = new Client({ connectionString: databaseUrl });
+    await direct.connect();
+    const sha256 = (data: Buffer) =>
+      createHash('sha256').update(data).digest('hex');
+    const original = randomBytes(4096);
+    const replaced = randomBytes(1024);
+    try {
+      await direct.query('BEGIN');
+      await direct.query(
+        'CREATE TEMP TABLE "AnexoTeste" (id serial PRIMARY KEY, nome text, conteudo bytea)',
+      );
+      await direct.query(`SELECT audit_enable('"AnexoTeste"')`);
+      const { rows: inserted } = await direct.query<{ id: number }>(
+        'INSERT INTO "AnexoTeste" (nome, conteudo) VALUES ($1, $2), ($3, NULL) RETURNING id',
+        ['a.pdf', original, 'vazio.pdf'],
+      );
+      const [id, emptyId] = inserted.map((row) => row.id);
+      await direct.query(
+        'UPDATE "AnexoTeste" SET conteudo = $1 WHERE id = $2',
+        [replaced, id],
+      );
+      await direct.query('DELETE FROM "AnexoTeste" WHERE id = $1', [id]);
+
+      const { rows } = await direct.query<{
+        operation: string;
+        recordId: string;
+        oldData: Record<string, unknown> | null;
+        newData: Record<string, unknown> | null;
+      }>(
+        `SELECT operation, "recordId", "oldData", "newData" FROM "AuditLog"
+          WHERE "tableName" = 'AnexoTeste' ORDER BY id`,
+      );
+      const ofRecord = rows.filter((row) => row.recordId === String(id));
+      const [created, updated, deleted] = ofRecord;
+
+      expect(ofRecord.map((row) => row.operation)).toEqual([
+        'INSERT',
+        'UPDATE',
+        'DELETE',
+      ]);
+      expect(created.newData?.conteudo).toEqual({
+        sha256: sha256(original),
+        bytes: 4096,
+      });
+      expect(updated.oldData?.conteudo).toEqual({
+        sha256: sha256(original),
+        bytes: 4096,
+      });
+      expect(updated.newData?.conteudo).toEqual({
+        sha256: sha256(replaced),
+        bytes: 1024,
+      });
+      expect(deleted.oldData?.conteudo).toEqual({
+        sha256: sha256(replaced),
+        bytes: 1024,
+      });
+      const empty = rows.find((row) => row.recordId === String(emptyId));
+      expect(empty?.newData?.conteudo).toBeNull();
+      // Nenhum conteúdo binário (texto hexadecimal "\x...") na auditoria.
+      expect(JSON.stringify(rows)).not.toContain('\\\\x');
+    } finally {
+      await direct.query('ROLLBACK');
+      await direct.end();
+    }
   });
 
   it('deve impedir alteração e exclusão dos registros de auditoria', async () => {

@@ -4,6 +4,7 @@ import { useFeedbackProcesses } from '../hooks/useFeedbackProcesses';
 import FeedbackProcessCreation from './FeedbackProcessCreation';
 import ManagedUserCreation from './ManagedUserCreation';
 import TeamManagement from './TeamManagement';
+import FactCreation from './FactCreation';
 import feedbackSessionService from '../services/feedbackSessionService';
 import type { FeedbackProcess } from '../types/feedback-process';
 import { ProcessPanel, ReportsPanel } from '../components/DashboardPanels';
@@ -24,7 +25,9 @@ const Dashboard: React.FC = () => {
   >([]);
   const [isCreating, setIsCreating] = useState(false);
   const [selectedProcess, setSelectedProcess] = useState<FeedbackProcess | null>(null);
-  const [managementScreen, setManagementScreen] = useState<'users' | 'teams' | null>(null);
+  const [managementScreen, setManagementScreen] = useState<
+    'users' | 'teams' | 'facts' | null
+  >(null);
   const [isMenuOpen, setIsMenuOpen] = useState(() => window.innerWidth > 700);
 
   const canAccessFeedbackProcesses =
@@ -167,9 +170,15 @@ const Dashboard: React.FC = () => {
   const isPlanningScreen =
     canAccessFeedbackProcesses &&
     (selectedProcess !== null || (canCreateFeedbackProcess && isCreating));
-  const isManagementScreen = user?.role === 'ADMIN_RH' && managementScreen !== null;
+  const isManagementScreen =
+    user?.role === 'ADMIN_RH' &&
+    (managementScreen === 'users' || managementScreen === 'teams');
+  const isFactScreen = managementScreen === 'facts';
 
-  const navItems: SideNavItem[] = [{ key: 'panel', label: 'Painel' }];
+  const navItems: SideNavItem[] = [
+    { key: 'panel', label: 'Painel' },
+    { key: 'facts', label: 'Registrar fato' },
+  ];
   if (user?.role === 'ADMIN_RH') {
     navItems.push({ key: 'users', label: 'Usuários' }, { key: 'teams', label: 'Equipes' });
   }
@@ -179,6 +188,8 @@ const Dashboard: React.FC = () => {
 
   const activeNavKey = isManagementScreen
     ? (managementScreen as string)
+    : isFactScreen
+      ? 'facts'
     : isPlanningScreen && selectedProcess === null
       ? 'new-planning'
       : 'panel';
@@ -186,7 +197,7 @@ const Dashboard: React.FC = () => {
   const handleNavSelect = (key: string) => {
     setSelectedProcess(null);
     setIsCreating(key === 'new-planning');
-    setManagementScreen(key === 'users' || key === 'teams' ? key : null);
+    setManagementScreen(key === 'users' || key === 'teams' || key === 'facts' ? key : null);
   };
 
   return (
@@ -206,7 +217,9 @@ const Dashboard: React.FC = () => {
 
         <main className="dashboard-main">
           <div className={`dashboard-content${isPlanningScreen || isManagementScreen ? ' dashboard-content-planning' : ''}`}>
-            {isManagementScreen && managementScreen === 'users' ? (
+            {isFactScreen ? (
+              <FactCreation onSaved={() => undefined} />
+            ) : isManagementScreen && managementScreen === 'users' ? (
               <ManagedUserCreation currentUserId={user.id} />
             ) : isManagementScreen && managementScreen === 'teams' ? (
               <TeamManagement />
