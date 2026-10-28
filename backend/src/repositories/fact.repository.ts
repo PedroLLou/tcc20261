@@ -36,16 +36,10 @@ export class FactRepository {
     viewerRole: string,
     viewerTeamId: number | null,
   ) {
+    const where = this.buildViewerWhere(viewerId, viewerRole, viewerTeamId);
+
     return this.prisma.fact.findMany({
-      where: {
-        OR: [
-          { authorId: viewerId },
-          ...(viewerRole === 'ADMIN_RH' ? [{}] : []),
-          ...(viewerRole === 'ADMIN_LEADER' && viewerTeamId !== null
-            ? [{ author: { teamId: viewerTeamId } }]
-            : []),
-        ],
-      },
+      where,
       select: factSelection,
       orderBy: { recordedAt: 'desc' },
     });
@@ -58,19 +52,13 @@ export class FactRepository {
     viewerRole: string,
     viewerTeamId: number | null,
   ) {
+    const factWhere = this.buildViewerWhere(viewerId, viewerRole, viewerTeamId);
+
     return this.prisma.factAttachment.findFirst({
       where: {
         id: attachmentId,
         factId,
-        fact: {
-          OR: [
-            { authorId: viewerId },
-            ...(viewerRole === 'ADMIN_RH' ? [{}] : []),
-            ...(viewerRole === 'ADMIN_LEADER' && viewerTeamId !== null
-              ? [{ author: { teamId: viewerTeamId } }]
-              : []),
-          ],
-        },
+        fact: factWhere,
       },
       select: {
         originalName: true,
@@ -78,5 +66,24 @@ export class FactRepository {
         content: true,
       },
     });
+  }
+
+  private buildViewerWhere(
+    viewerId: number,
+    viewerRole: string,
+    viewerTeamId: number | null,
+  ): Prisma.FactWhereInput {
+    if (viewerRole === 'ADMIN_RH') {
+      return {};
+    }
+
+    return {
+      OR: [
+        { authorId: viewerId },
+        ...(viewerRole === 'ADMIN_LEADER' && viewerTeamId !== null
+          ? [{ author: { teamId: viewerTeamId } }]
+          : []),
+      ],
+    };
   }
 }
