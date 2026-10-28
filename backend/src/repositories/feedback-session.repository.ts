@@ -5,6 +5,7 @@ import { PrismaService } from '../prisma.service';
 export const feedbackSessionSelection = {
   id: true,
   processId: true,
+  objective: true,
   createdAt: true,
   updatedAt: true,
 } satisfies Prisma.FeedbackSessionSelect;
@@ -24,7 +25,7 @@ export class FeedbackSessionRepository {
     return this.prisma.feedbackSession.findUnique({
       where: { id },
       select: {
-        id: true,
+        ...feedbackSessionSelection,
         process: {
           select: {
             ownerId: true,
@@ -32,6 +33,14 @@ export class FeedbackSessionRepository {
           },
         },
       },
+    });
+  }
+
+  update(id: number, data: Prisma.FeedbackSessionUpdateInput) {
+    return this.prisma.feedbackSession.update({
+      where: { id },
+      data,
+      select: feedbackSessionSelection,
     });
   }
 }
