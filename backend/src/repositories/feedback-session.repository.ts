@@ -19,4 +19,19 @@ export class FeedbackSessionRepository {
       select: feedbackSessionSelection,
     });
   }
+
+  findById(id: number) {
+    return this.prisma.feedbackSession.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        process: {
+          select: {
+            ownerId: true,
+            participantId: true,
+          },
+        },
+      },
+    });
+  }
 }
