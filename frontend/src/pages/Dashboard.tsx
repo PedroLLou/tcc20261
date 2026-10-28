@@ -19,10 +19,9 @@ const Dashboard: React.FC = () => {
   const [processActionError, setProcessActionError] = useState('');
   const [creatingSessionProcessIds, setCreatingSessionProcessIds] = useState<number[]>([]);
   const [sessionNotice, setSessionNotice] = useState('');
-  const [createdSession, setCreatedSession] = useState<{
-    id: number;
-    participantName: string;
-  } | null>(null);
+  const [createdSessions, setCreatedSessions] = useState<
+    { id: number; participantName: string }[]
+  >([]);
   const [isCreating, setIsCreating] = useState(false);
   const [selectedProcess, setSelectedProcess] = useState<FeedbackProcess | null>(null);
   const [managementScreen, setManagementScreen] = useState<'users' | 'teams' | null>(null);
@@ -68,10 +67,13 @@ const Dashboard: React.FC = () => {
     try {
       const session = await feedbackSessionService.create(process.id);
       setSessionNotice('Sessão de feedback criada.');
-      setCreatedSession({
-        id: session.id,
-        participantName: process.participant?.name ?? 'participante não definido',
-      });
+      setCreatedSessions((sessions) => [
+        ...sessions,
+        {
+          id: session.id,
+          participantName: process.participant?.name ?? 'participante não definido',
+        },
+      ]);
     } catch {
       setProcessActionError('Não foi possível criar a sessão. Tente novamente.');
     } finally {
@@ -111,17 +113,16 @@ const Dashboard: React.FC = () => {
                 canCreate={canCreateFeedbackProcess}
                 deletingProcessId={deletingProcessId}
                 notice={sessionNotice}
-                sessionForm={
-                  createdSession && (
-                    <SessionObjectiveForm
-                      key={createdSession.id}
-                      participantName={createdSession.participantName}
-                      onSave={async (objective) => {
-                        await feedbackSessionService.defineObjective(createdSession.id, objective);
-                      }}
-                    />
-                  )
-                }
+                sessionForm={createdSessions.map((createdSession) => (
+                  <SessionObjectiveForm
+                    key={createdSession.id}
+                    sessionId={createdSession.id}
+                    participantName={createdSession.participantName}
+                    onSave={async (objective) => {
+                      await feedbackSessionService.defineObjective(createdSession.id, objective);
+                    }}
+                  />
+                ))}
                 currentUserId={user.id}
                 creatingSessionProcessIds={creatingSessionProcessIds}
                 onCreate={() => setIsCreating(true)}

@@ -76,6 +76,30 @@ describe('Dashboard', () => {
     expect(defineMock).toHaveBeenCalledWith(1, 'Alinhar metas');
   });
 
+  it('deve manter o objetivo digitado de uma sessão quando outra sessão é criada', async () => {
+    let finishSecond: (session: unknown) => void = () => undefined;
+    createMock
+      .mockResolvedValueOnce({ id: 1, processId: 3, objective: null })
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          finishSecond = resolve;
+        }),
+      );
+    render(<Dashboard />);
+
+    fireEvent.click(sessionButtons()[0]);
+    const [firstField] = await screen.findAllByLabelText('Objetivo da sessão');
+    fireEvent.change(firstField, { target: { value: 'Alinhar metas' } });
+    fireEvent.click(sessionButtons()[1]);
+    await act(async () => {
+      finishSecond({ id: 2, processId: 4, objective: null });
+    });
+
+    const fields = await screen.findAllByLabelText('Objetivo da sessão');
+    expect(fields).toHaveLength(2);
+    expect(fields[0]).toHaveValue('Alinhar metas');
+  });
+
   it('deve mostrar o erro quando a sessão não pode ser criada', async () => {
     createMock.mockRejectedValue(new Error('falha'));
     render(<Dashboard />);

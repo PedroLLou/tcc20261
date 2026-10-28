@@ -6,7 +6,9 @@ describe('SessionObjectiveForm', () => {
   const onSave = jest.fn();
 
   const renderForm = () =>
-    render(<SessionObjectiveForm participantName="Ana Lima" onSave={onSave} />);
+    render(
+      <SessionObjectiveForm sessionId={1} participantName="Ana Lima" onSave={onSave} />,
+    );
   const typeObjective = (text: string) =>
     fireEvent.change(screen.getByLabelText('Objetivo da sessão'), {
       target: { value: text },

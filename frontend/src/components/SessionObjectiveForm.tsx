@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 
 interface SessionObjectiveFormProps {
+  sessionId: number;
   participantName: string;
   onSave: (objective: string) => Promise<void>;
 }
 
 const SessionObjectiveForm: React.FC<SessionObjectiveFormProps> = ({
+  sessionId,
   participantName,
   onSave,
 }) => {
@@ -32,9 +34,9 @@ const SessionObjectiveForm: React.FC<SessionObjectiveFormProps> = ({
   return (
     <form className="session-objective-form" onSubmit={(event) => void handleSubmit(event)}>
       <p className="session-objective-title">Sessão de {participantName}</p>
-      <label htmlFor="session-objective">Objetivo da sessão</label>
+      <label htmlFor={`session-objective-${sessionId}`}>Objetivo da sessão</label>
       <textarea
-        id="session-objective"
+        id={`session-objective-${sessionId}`}
         value={objective}
         maxLength={500}
         rows={3}
