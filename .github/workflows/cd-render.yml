@@ -1,0 +1,62 @@
+name: Deploy Render
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: render-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Migrate and deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      DIRECT_URL: ${{ secrets.DIRECT_URL }}
+      BACKEND_DEPLOY_HOOK: ${{ secrets.RENDER_BACKEND_DEPLOY_HOOK }}
+      FRONTEND_DEPLOY_HOOK: ${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Validate required deployment secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$DIRECT_URL" || { echo "::error::Configure o secret DIRECT_URL."; exit 1; }
+          test -n "$BACKEND_DEPLOY_HOOK" || { echo "::error::Configure o secret RENDER_BACKEND_DEPLOY_HOOK."; exit 1; }
+          test -n "$FRONTEND_DEPLOY_HOOK" || { echo "::error::Configure o secret RENDER_FRONTEND_DEPLOY_HOOK."; exit 1; }
+
+      - name: Run migrations from this revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          config="$(mktemp)"
+          trap 'rm -f "$config"' EXIT
+          printf 'DIRECT_URL=%s\n' "$DIRECT_URL" > "$config"
+          CONTAINER_ENGINE=docker node scripts/render-migrate.mjs "$config"
+
+      - name: Deploy backend
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 3 --retry-delay 5 \
+            --request POST "$BACKEND_DEPLOY_HOOK"
+
+      - name: Deploy frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 3 --retry-delay 5 \
+            --request POST "$FRONTEND_DEPLOY_HOOK"
+
+

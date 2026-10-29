@@ -52,6 +52,9 @@ jobs:
       - name: Tests
         working-directory: ./frontend
         run: npm test -- --watchAll=false --coverage
+      - name: Frontend Node tests
+        working-directory: ./frontend
+        run: node --test tests/*.test.mjs
       - name: Upload coverage
         uses: actions/upload-artifact@v4
         with:

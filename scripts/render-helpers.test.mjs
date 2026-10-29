@@ -32,6 +32,7 @@ test('creates private independent cloud credentials and preserves an existing co
   const config = parseEnv(before);
   assert.equal(mode & 0o777, 0o600);
   assert.equal(config.DATABASE_URL, '');
+  assert.equal(config.DIRECT_URL, '');
   assert.equal(config.RENDER_API_KEY, '');
   assert.equal(config.NEON_API_KEY, '');
   assert.match(config.JWT_SECRET, /^[a-f0-9]{64}$/);
@@ -46,7 +47,7 @@ test('creates private independent cloud credentials and preserves an existing co
 test('refuses insecure migration configuration before starting the engine and without exposing values', (t) => {
   const path = fixture(t);
   const marker = 'CONFIG_SECRET_CANARY';
-  writeFileSync(path, `DATABASE_URL=postgresql://user:${marker}@db:5432/tcc\n`, { mode: 0o600 });
+  writeFileSync(path, `DIRECT_URL=postgresql://user:${marker}@db:5432/tcc\n`, { mode: 0o600 });
   const result = execute('render-migrate.mjs', path, { ...process.env, PATH: '/path/without/commands' });
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /TLS/);

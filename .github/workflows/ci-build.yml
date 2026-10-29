@@ -17,6 +17,9 @@ jobs:
         working-directory: ./backend
       - name: Prisma generate
         working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci?sslmode=disable
+          DIRECT_URL: postgresql://ci:ci@localhost:5432/ci?sslmode=disable
         run: npx prisma generate
       - name: Type check
         working-directory: ./backend
