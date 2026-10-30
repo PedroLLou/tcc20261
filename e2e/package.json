@@ -1,0 +1,16 @@
+{
+  "name": "e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Testes de ponta a ponta (Cypress) do Sistema de Gerenciamento de Feedbacks",
+  "scripts": {
+    "test:unit": "node --test \"support/*.test.js\"",
+    "open": "cypress open",
+    "e2e": "cypress run"
+  },
+  "devDependencies": {
+    "bcryptjs": "^3.0.3",
+    "cypress": "^16.2.1",
+    "pg": "^8.23.1"
+  }
+}
