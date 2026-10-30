@@ -50,13 +50,12 @@ jobs:
         run: |
           set -euo pipefail
           curl --fail --silent --show-error --retry 3 --retry-delay 5 \
-            --request POST "$BACKEND_DEPLOY_HOOK"
+            --request POST "${BACKEND_DEPLOY_HOOK}&ref=${GITHUB_SHA}"
 
       - name: Deploy frontend
         shell: bash
         run: |
           set -euo pipefail
           curl --fail --silent --show-error --retry 3 --retry-delay 5 \
-            --request POST "$FRONTEND_DEPLOY_HOOK"
-
+            --request POST "${FRONTEND_DEPLOY_HOOK}&ref=${GITHUB_SHA}"
 

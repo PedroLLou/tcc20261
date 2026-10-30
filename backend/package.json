@@ -88,7 +88,8 @@
     "typescript-eslint": "^8.20.0"
   },
   "overrides": {
-    "multer": "2.3.0",
+    "js-yaml": "5.5.0",
+    "multer": "2.5.0",
     "deepmerge-ts": "^8.0.0"
   },
   "jest": {
