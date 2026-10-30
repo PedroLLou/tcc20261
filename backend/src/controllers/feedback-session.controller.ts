@@ -1,9 +1,21 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { Roles, RolesGuard } from '../guards/roles.guard';
-import { CreateFeedbackSessionDto } from '../dto/feedback-session.dto';
+import {
+  CreateFeedbackSessionDto,
+  DefineFeedbackSessionObjectiveDto,
+} from '../dto/feedback-session.dto';
 import { FeedbackSessionService } from '../services/feedback-session.service';
 
 type AuthenticatedRequest = Request & {
@@ -27,5 +39,20 @@ export class FeedbackSessionController {
     @Body() dto: CreateFeedbackSessionDto,
   ) {
     return this.feedbackSessionService.create(request.user.id, dto);
+  }
+
+  @Patch(':id/objective')
+  @Roles('ADMIN_LEADER')
+  @UseGuards(RolesGuard)
+  defineObjective(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() request: AuthenticatedRequest,
+    @Body() dto: DefineFeedbackSessionObjectiveDto,
+  ) {
+    return this.feedbackSessionService.defineObjective(
+      id,
+      request.user.id,
+      dto,
+    );
   }
 }

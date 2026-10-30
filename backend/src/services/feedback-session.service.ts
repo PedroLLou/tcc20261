@@ -6,7 +6,10 @@ import {
 } from '@nestjs/common';
 import { FeedbackProcessRepository } from '../repositories/feedback-process.repository';
 import { FeedbackSessionRepository } from '../repositories/feedback-session.repository';
-import { CreateFeedbackSessionDto } from '../dto/feedback-session.dto';
+import {
+  CreateFeedbackSessionDto,
+  DefineFeedbackSessionObjectiveDto,
+} from '../dto/feedback-session.dto';
 
 @Injectable()
 export class FeedbackSessionService {
@@ -30,5 +33,31 @@ export class FeedbackSessionService {
     }
 
     return this.sessions.create({ process: { connect: { id: process.id } } });
+  }
+
+  async defineObjective(
+    id: number,
+    ownerId: number,
+    dto: DefineFeedbackSessionObjectiveDto,
+  ) {
+    const session = await this.sessions.findById(id);
+    if (!session) throw new NotFoundException('Sessão não encontrada.');
+    if (session.process.ownerId !== ownerId) {
+      throw new ForbiddenException(
+        'Líderes só podem definir o objetivo das sessões dos próprios processos.',
+      );
+    }
+
+    const objective = dto.objective.trim();
+    if (!objective) {
+      throw new BadRequestException('Informe o objetivo da sessão.');
+    }
+    if (objective.length > 500) {
+      throw new BadRequestException(
+        'O objetivo deve ter no máximo 500 caracteres.',
+      );
+    }
+
+    return this.sessions.update(id, { objective });
   }
 }
