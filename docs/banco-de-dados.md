@@ -81,6 +81,7 @@ erDiagram
     FeedbackSession {
         int id PK
         int processId FK
+        text objective "opcional"
         timestamp createdAt
         timestamp updatedAt
     }
@@ -153,6 +154,7 @@ colunas gravadas pelo Prisma, fica em UTC.
 |---|---|---|---|
 | `id` | `SERIAL` | não | Chave primária |
 | `processId` | `INTEGER` | não | FK → `FeedbackProcess.id`, `ON DELETE CASCADE`. Indexada. A API só cria sessão em processo `PLANNED` do próprio líder |
+| `objective` | `TEXT` | sim | Objetivo da sessão, definido depois da criação. A API exige de 1 a 500 caracteres e só o líder dono do processo define |
 | `createdAt` / `updatedAt` | `TIMESTAMP(3)` | não | |
 
 **`AuditLog`**: registro imutável das alterações, gravado só por *trigger*.

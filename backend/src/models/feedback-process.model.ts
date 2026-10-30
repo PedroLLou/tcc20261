@@ -1,7 +1,4 @@
-export type FeedbackProcessStatus =
-  | 'DRAFT'
-  | 'SENT_FOR_VALIDATION'
-  | 'PLANNED';
+export type FeedbackProcessStatus = 'DRAFT' | 'SENT_FOR_VALIDATION' | 'PLANNED';
 
 export interface FeedbackProcessParticipant {
   id: number;

@@ -1,4 +1,13 @@
-import { IsArray, IsInt, IsNotEmpty, IsOptional, IsString, IsISO8601, MaxLength, Min } from 'class-validator';
+import {
+  IsArray,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsISO8601,
+  MaxLength,
+  Min,
+} from 'class-validator';
 
 export class CreateFeedbackProcessDto {
   @IsOptional()

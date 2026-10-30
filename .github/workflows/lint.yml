@@ -27,7 +27,7 @@ jobs:
 
       - name: Security audit (backend)
         working-directory: ./backend
-        run: npm audit --audit-level=high
+        run: npm audit --omit=dev --audit-level=moderate
 
       - name: Lint
         working-directory: ./backend
@@ -51,7 +51,7 @@ jobs:
 
       - name: Security audit (frontend)
         working-directory: ./frontend
-        run: npm audit --audit-level=high
+        run: npm audit --omit=dev --audit-level=moderate
 
       - name: Lint
         working-directory: ./frontend

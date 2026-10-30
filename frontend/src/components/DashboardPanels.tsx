@@ -28,6 +28,7 @@ interface ProcessPanelProps {
   canCreate: boolean;
   deletingProcessId: number | null;
   notice?: string;
+  sessionForm?: React.ReactNode;
   currentUserId?: number;
   creatingSessionProcessIds?: number[];
   onCreate: () => void;
@@ -43,6 +44,7 @@ export const ProcessPanel: React.FC<ProcessPanelProps> = ({
   canCreate,
   deletingProcessId,
   notice,
+  sessionForm,
   currentUserId,
   creatingSessionProcessIds,
   onCreate,
@@ -72,6 +74,7 @@ export const ProcessPanel: React.FC<ProcessPanelProps> = ({
         {notice}
       </p>
     )}
+    {sessionForm}
     {isLoading ? (
       <p className="process-list-empty">Carregando processos...</p>
     ) : processes.length === 0 ? (

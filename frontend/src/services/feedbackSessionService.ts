@@ -8,6 +8,14 @@ class FeedbackSessionService {
     });
     return response.data;
   }
+
+  async defineObjective(id: number, objective: string): Promise<FeedbackSession> {
+    const response = await api.patch<FeedbackSession>(
+      `/feedback-sessions/${id}/objective`,
+      { objective },
+    );
+    return response.data;
+  }
 }
 
 export default new FeedbackSessionService();
