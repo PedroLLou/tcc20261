@@ -28,6 +28,6 @@ describe('FactController', () => {
     );
 
     expect(response.send).toHaveBeenCalledWith(Buffer.from(content));
-    expect(response.send.mock.calls[0][0]).toBeInstanceOf(Buffer);
+    expect(response.send).toHaveBeenCalledWith(expect.any(Buffer));
   });
 });

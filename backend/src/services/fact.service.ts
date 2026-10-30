@@ -106,29 +106,35 @@ export class FactService {
     }
 
     for (const file of files) {
-      if (
-        !file ||
-        typeof file.originalname !== 'string' ||
-        typeof file.mimetype !== 'string' ||
-        typeof file.size !== 'number' ||
-        !Number.isFinite(file.size) ||
-        !Buffer.isBuffer(file.buffer)
-      ) {
-        throw new BadRequestException('O anexo enviado é inválido.');
-      }
-
-      if (!file.originalname.trim()) {
-        throw new BadRequestException('O anexo enviado é inválido.');
-      }
-      if (file.size > MAX_ATTACHMENT_SIZE) {
-        throw new BadRequestException('Cada anexo deve ter no máximo 10 MB.');
-      }
-      if (!ALLOWED_MIME_TYPES.has(file.mimetype.toLowerCase())) {
-        throw new BadRequestException(
-          'O tipo de um dos anexos não é permitido.',
-        );
-      }
+      this.validateAttachment(file);
     }
+  }
+
+  private validateAttachment(file: FactUpload) {
+    if (!this.hasValidAttachmentShape(file)) {
+      throw new BadRequestException('O anexo enviado é inválido.');
+    }
+
+    if (!file.originalname.trim()) {
+      throw new BadRequestException('O anexo enviado é inválido.');
+    }
+    if (file.size > MAX_ATTACHMENT_SIZE) {
+      throw new BadRequestException('Cada anexo deve ter no máximo 10 MB.');
+    }
+    if (!ALLOWED_MIME_TYPES.has(file.mimetype.toLowerCase())) {
+      throw new BadRequestException('O tipo de um dos anexos não é permitido.');
+    }
+  }
+
+  private hasValidAttachmentShape(file: FactUpload) {
+    return Boolean(
+      file &&
+      typeof file.originalname === 'string' &&
+      typeof file.mimetype === 'string' &&
+      typeof file.size === 'number' &&
+      Number.isFinite(file.size) &&
+      Buffer.isBuffer(file.buffer),
+    );
   }
 
   private async validateRelations(authorId: number, dto: CreateFactDto) {
