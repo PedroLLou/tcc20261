@@ -1,4 +1,12 @@
-import { IsEmail, IsInt, IsNotEmpty, IsString, Max, Min, IsIn } from 'class-validator';
+import {
+  IsEmail,
+  IsInt,
+  IsNotEmpty,
+  IsString,
+  Max,
+  Min,
+  IsIn,
+} from 'class-validator';
 import type { UserRole } from '../models/user.model';
 
 export class LoginDto {
