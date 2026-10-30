@@ -82,6 +82,7 @@ erDiagram
         int id PK
         int processId FK
         text objective "opcional"
+        timestamp scheduledAt "opcional"
         timestamp createdAt
         timestamp updatedAt
     }
@@ -155,6 +156,7 @@ colunas gravadas pelo Prisma, fica em UTC.
 | `id` | `SERIAL` | não | Chave primária |
 | `processId` | `INTEGER` | não | FK → `FeedbackProcess.id`, `ON DELETE CASCADE`. Indexada. A API só cria sessão em processo `PLANNED` do próprio líder |
 | `objective` | `TEXT` | sim | Objetivo da sessão, definido depois da criação. A API exige de 1 a 500 caracteres e só o líder dono do processo define |
+| `scheduledAt` | `TIMESTAMP(3)` | sim | Data e horário em que a sessão deve ocorrer, definidos depois da criação. A API só aceita instantes futuros e só o líder dono do processo define |
 | `createdAt` / `updatedAt` | `TIMESTAMP(3)` | não | |
 
 **`AuditLog`**: registro imutável das alterações, gravado só por *trigger*.

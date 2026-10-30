@@ -15,6 +15,7 @@ import { Roles, RolesGuard } from '../guards/roles.guard';
 import {
   CreateFeedbackSessionDto,
   DefineFeedbackSessionObjectiveDto,
+  DefineFeedbackSessionScheduleDto,
 } from '../dto/feedback-session.dto';
 import { FeedbackSessionService } from '../services/feedback-session.service';
 
@@ -54,5 +55,16 @@ export class FeedbackSessionController {
       request.user.id,
       dto,
     );
+  }
+
+  @Patch(':id/schedule')
+  @Roles('ADMIN_LEADER')
+  @UseGuards(RolesGuard)
+  defineSchedule(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() request: AuthenticatedRequest,
+    @Body() dto: DefineFeedbackSessionScheduleDto,
+  ) {
+    return this.feedbackSessionService.defineSchedule(id, request.user.id, dto);
   }
 }

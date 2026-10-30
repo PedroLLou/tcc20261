@@ -76,6 +76,22 @@ describe('Dashboard', () => {
     expect(defineMock).toHaveBeenCalledWith(1, 'Alinhar metas');
   });
 
+  it('deve abrir o campo de data e horário da sessão criada e salvar', async () => {
+    const defineMock = feedbackSessionService.defineSchedule as jest.Mock;
+    createMock.mockResolvedValue({ id: 1, processId: 3, scheduledAt: null });
+    defineMock.mockResolvedValue({ id: 1, processId: 3 });
+    render(<Dashboard />);
+
+    fireEvent.click(sessionButtons()[0]);
+    fireEvent.change(await screen.findByLabelText('Data e horário da sessão'), {
+      target: { value: '2099-11-05T10:00' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar data e horário' }));
+
+    expect(await screen.findByText('Data e horário da sessão salvos.')).toBeInTheDocument();
+    expect(defineMock).toHaveBeenCalledWith(1, new Date('2099-11-05T10:00').toISOString());
+  });
+
   it('deve manter o objetivo digitado de uma sessão quando outra sessão é criada', async () => {
     let finishSecond: (session: unknown) => void = () => undefined;
     createMock

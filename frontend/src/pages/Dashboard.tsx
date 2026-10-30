@@ -9,6 +9,7 @@ import feedbackSessionService from '../services/feedbackSessionService';
 import type { FeedbackProcess } from '../types/feedback-process';
 import { ProcessPanel, ReportsPanel } from '../components/DashboardPanels';
 import SessionObjectiveForm from '../components/SessionObjectiveForm';
+import SessionScheduleForm from '../components/SessionScheduleForm';
 import AppHeader from '../components/AppHeader';
 import SideNav from '../components/SideNav';
 import type { SideNavItem } from '../components/SideNav';
@@ -117,14 +118,21 @@ const Dashboard: React.FC = () => {
                 deletingProcessId={deletingProcessId}
                 notice={sessionNotice}
                 sessionForm={createdSessions.map((createdSession) => (
-                  <SessionObjectiveForm
-                    key={createdSession.id}
-                    sessionId={createdSession.id}
-                    participantName={createdSession.participantName}
-                    onSave={async (objective) => {
-                      await feedbackSessionService.defineObjective(createdSession.id, objective);
-                    }}
-                  />
+                  <div key={createdSession.id}>
+                    <SessionObjectiveForm
+                      sessionId={createdSession.id}
+                      participantName={createdSession.participantName}
+                      onSave={async (objective) => {
+                        await feedbackSessionService.defineObjective(createdSession.id, objective);
+                      }}
+                    />
+                    <SessionScheduleForm
+                      sessionId={createdSession.id}
+                      onSave={async (scheduledAt) => {
+                        await feedbackSessionService.defineSchedule(createdSession.id, scheduledAt);
+                      }}
+                    />
+                  </div>
                 ))}
                 currentUserId={user.id}
                 creatingSessionProcessIds={creatingSessionProcessIds}
