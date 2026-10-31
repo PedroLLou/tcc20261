@@ -485,7 +485,8 @@
   font-weight: 600;
 }
 
-.session-objective-form {
+.session-objective-form,
+.session-schedule-form {
   display: grid;
   gap: 8px;
   margin-top: 14px;
@@ -500,9 +501,20 @@
   font-weight: 700;
 }
 
-.session-objective-form label {
+.session-objective-form label,
+.session-schedule-form label {
   color: var(--color-text-muted);
   font-size: 13px;
+}
+
+.session-schedule-form input {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 260px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  font: inherit;
 }
 
 .session-objective-form textarea {
@@ -515,13 +527,16 @@
   resize: vertical;
 }
 
-.session-objective-form .process-session-button {
+.session-objective-form .process-session-button,
+.session-schedule-form .process-session-button {
   justify-self: start;
   padding: 0 14px;
 }
 
 .session-objective-form .process-list-notice,
-.session-objective-form .process-list-error {
+.session-objective-form .process-list-error,
+.session-schedule-form .process-list-notice,
+.session-schedule-form .process-list-error {
   padding: 0;
 }
 

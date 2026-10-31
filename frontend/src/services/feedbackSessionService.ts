@@ -16,6 +16,14 @@ class FeedbackSessionService {
     );
     return response.data;
   }
+
+  async defineSchedule(id: number, scheduledAt: string): Promise<FeedbackSession> {
+    const response = await api.patch<FeedbackSession>(
+      `/feedback-sessions/${id}/schedule`,
+      { scheduledAt },
+    );
+    return response.data;
+  }
 }
 
 export default new FeedbackSessionService();

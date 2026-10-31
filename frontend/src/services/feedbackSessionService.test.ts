@@ -27,4 +27,17 @@ describe('feedbackSessionService', () => {
     });
     expect(result).toEqual(session);
   });
+
+  it('deve enviar a data e o horário da sessão e devolver a sessão atualizada', async () => {
+    const scheduledAt = '2099-11-05T13:00:00.000Z';
+    const session = { id: 1, processId: 3, scheduledAt };
+    apiMock.patch.mockResolvedValue({ data: session });
+
+    const result = await feedbackSessionService.defineSchedule(1, scheduledAt);
+
+    expect(apiMock.patch).toHaveBeenCalledWith('/feedback-sessions/1/schedule', {
+      scheduledAt,
+    });
+    expect(result).toEqual(session);
+  });
 });

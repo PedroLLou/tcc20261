@@ -9,6 +9,7 @@ import { FeedbackSessionRepository } from '../repositories/feedback-session.repo
 import {
   CreateFeedbackSessionDto,
   DefineFeedbackSessionObjectiveDto,
+  DefineFeedbackSessionScheduleDto,
 } from '../dto/feedback-session.dto';
 
 @Injectable()
@@ -59,5 +60,31 @@ export class FeedbackSessionService {
     }
 
     return this.sessions.update(id, { objective });
+  }
+
+  async defineSchedule(
+    id: number,
+    ownerId: number,
+    dto: DefineFeedbackSessionScheduleDto,
+  ) {
+    const session = await this.sessions.findById(id);
+    if (!session) throw new NotFoundException('Sessão não encontrada.');
+    if (session.process.ownerId !== ownerId) {
+      throw new ForbiddenException(
+        'Líderes só podem definir a data das sessões dos próprios processos.',
+      );
+    }
+
+    const scheduledAt = new Date(dto.scheduledAt);
+    if (Number.isNaN(scheduledAt.getTime())) {
+      throw new BadRequestException('Informe uma data e um horário válidos.');
+    }
+    if (scheduledAt.getTime() <= Date.now()) {
+      throw new BadRequestException(
+        'A data e o horário da sessão não podem estar no passado.',
+      );
+    }
+
+    return this.sessions.update(id, { scheduledAt });
   }
 }

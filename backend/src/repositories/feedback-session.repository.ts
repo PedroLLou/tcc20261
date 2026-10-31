@@ -6,6 +6,7 @@ export const feedbackSessionSelection = {
   id: true,
   processId: true,
   objective: true,
+  scheduledAt: true,
   createdAt: true,
   updatedAt: true,
 } satisfies Prisma.FeedbackSessionSelect;
