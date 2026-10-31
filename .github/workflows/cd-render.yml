@@ -10,8 +10,31 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  ci:
+    name: Wait for CI
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Require successful CI from this revision
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/wait-for-ci.mjs
+
   deploy:
     name: Migrate and deploy
+    needs: ci
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -22,6 +45,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
 
       - uses: actions/setup-node@v4
         with:

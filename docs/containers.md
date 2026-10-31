@@ -231,7 +231,30 @@ O verificador cria projeto, credenciais e portas exclusivos, inicia API, Postgre
 
 ## Render e Neon
 
-O [render.yaml](../render.yaml) prepara dois web services Docker Free em Virginia: API com `backend/Containerfile` e readiness `/api/v1/health/ready`, frontend com `frontend/Containerfile` e health check `/healthz`. PostgreSQL fica no Neon Free; não há disco, banco Render ou worker pago. O deploy é manual, após a migração da mesma release.
+O [render.yaml](../render.yaml) prepara dois web services Docker Free em Virginia: API com `backend/Containerfile` e readiness `/api/v1/health/ready`, frontend com `frontend/Containerfile` e health check `/healthz`. PostgreSQL fica no Neon Free; não há disco, banco Render ou worker pago. O auto-deploy do Render fica desligado; a atualização é acionada pelo workflow abaixo ou manualmente, após a migração da mesma release.
+
+### CI antes do deploy no GitHub Actions
+
+O workflow [Deploy Render](../.github/workflows/cd-render.yml) espera os workflows
+Build, Tests, ESLint e CodeQL do mesmo SHA, executados por `push` em `main`.
+Os quatro workflows e seus oito jobs precisam concluir com `success`. Resultados
+de outra branch, outro commit, evento de PR ou tentativa anterior não liberam o
+deploy. Se houver falha, cancelamento, job ignorado, erro da API ou expirar a
+espera de 15 minutos, a migração e os hooks não são executados.
+
+O job `Wait for CI` usa somente leitura da API de Actions, sem receber os secrets
+de banco e deploy. O job `Migrate and deploy` depende dele e mantém a ordem:
+migração da revisão, hook do backend e hook do frontend. Ambos fazem checkout do
+SHA do evento. A execução manual também exige `main` e CI aprovado; não é um
+atalho para ignorar essas verificações. Os hooks solicitam os deploys no Render;
+o sucesso do workflow não substitui a verificação de readiness e do HTTP público.
+
+A proteção da `main` verifica os PRs antes do merge. Essa dependência adicional
+verifica o commit que efetivamente entrou na `main`, antes de iniciar a migração.
+O `autoDeployTrigger: off` do Blueprint é preservado para manter o deploy pelos
+hooks após essa sequência. Confira também essa opção no painel dos serviços
+existentes. As definições e os nomes dos checks de CI continuam nos arquivos
+originais, inclusive para a revisão do Hermes.
 
 Use Render Hobby e Neon Free sem forma de pagamento. A meta é R$0 dentro das quotas, com teto histórico total de R$50/mês. Render Free dorme após 15 minutos e os dois containers compartilham 750 horas por mês; Hobby inclui 500 minutos de build. A API gratuita não recebe tráfego privado, então NGINX usa HTTPS público. Neon Free oferece 1 GB PostgreSQL, 100 CU-h e 5 GB de egress por projeto/mês, com suspensão após cinco minutos. Confirme as quotas no cadastro. PostgreSQL Free do Render expira em 30 dias e não é o banco desta configuração.
 
