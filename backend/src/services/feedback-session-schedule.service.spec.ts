@@ -6,7 +6,9 @@ import {
 import { FeedbackSessionService } from './feedback-session.service';
 import type { FeedbackSessionRepository } from '../repositories/feedback-session.repository';
 import type { FeedbackProcessRepository } from '../repositories/feedback-process.repository';
+import type { FactService } from './fact.service';
 
+// eslint-disable-next-line max-lines-per-function
 describe('FeedbackSessionService.defineSchedule', () => {
   let service: FeedbackSessionService;
   let sessions: { findById: jest.Mock; update: jest.Mock };
@@ -23,6 +25,7 @@ describe('FeedbackSessionService.defineSchedule', () => {
     service = new FeedbackSessionService(
       sessions as unknown as FeedbackSessionRepository,
       {} as unknown as FeedbackProcessRepository,
+      {} as FactService,
     );
   });
 

@@ -45,6 +45,93 @@ export class FactRepository {
     });
   }
 
+  listAvailableForViewer(
+    viewerId: number,
+    viewerRole: string,
+    viewerTeamId: number | null,
+    query: {
+      page: number;
+      pageSize: number;
+      relatedUserId?: number;
+      from?: Date;
+      to?: Date;
+    },
+  ) {
+    const viewerWhere = this.buildViewerWhere(
+      viewerId,
+      viewerRole,
+      viewerTeamId,
+    );
+    const where: Prisma.FactWhereInput = {
+      ...viewerWhere,
+      sessionId: null,
+      ...(query.relatedUserId !== undefined
+        ? { relatedUserId: query.relatedUserId }
+        : {}),
+      ...(query.from || query.to
+        ? {
+            recordedAt: {
+              ...(query.from ? { gte: query.from } : {}),
+              ...(query.to ? { lte: query.to } : {}),
+            },
+          }
+        : {}),
+    };
+
+    return Promise.all([
+      this.prisma.fact.count({ where }),
+      this.prisma.fact.findMany({
+        where,
+        select: factSelection,
+        orderBy: [{ recordedAt: 'desc' }, { id: 'desc' }],
+        skip: (query.page - 1) * query.pageSize,
+        take: query.pageSize,
+      }),
+    ]).then(([total, items]) => ({
+      items,
+      total,
+      page: query.page,
+      pageSize: query.pageSize,
+    }));
+  }
+
+  findForSelection(
+    factIds: number[],
+    viewerId: number,
+    viewerRole: string,
+    viewerTeamId: number | null,
+  ) {
+    return this.prisma.fact.findMany({
+      where: {
+        id: { in: factIds },
+        ...this.buildViewerWhere(viewerId, viewerRole, viewerTeamId),
+      },
+      select: { id: true, sessionId: true },
+    });
+  }
+
+  selectForSession(sessionId: number, factIds: number[]) {
+    return this.prisma.$transaction(async (transaction) => {
+      const updated = await transaction.fact.updateMany({
+        where: {
+          id: { in: factIds },
+          OR: [{ sessionId: null }, { sessionId }],
+        },
+        data: { sessionId },
+      });
+
+      if (updated.count !== factIds.length) {
+        throw new Error('FACT_SELECTION_CONFLICT');
+      }
+
+      return transaction.fact.findMany({
+        where: { id: { in: factIds } },
+        select: factSelection,
+        orderBy: [{ recordedAt: 'desc' }, { id: 'desc' }],
+      });
+    });
+  }
+
   findAttachmentForViewer(
     factId: number,
     attachmentId: number,

@@ -7,7 +7,7 @@ import {
 import { FactRepository } from '../repositories/fact.repository';
 import { FeedbackSessionRepository } from '../repositories/feedback-session.repository';
 import { UserRepository } from '../repositories/user.repository';
-import { CreateFactDto } from '../dto/fact.dto';
+import { CreateFactDto, FactQueryDto } from '../dto/fact.dto';
 
 export interface FactUpload {
   originalname: string;
@@ -92,6 +92,94 @@ export class FactService {
     if (!viewer) throw new NotFoundException('Usuário não encontrado.');
 
     return this.facts.listForViewer(viewerId, viewerRole, viewer.teamId);
+  }
+
+  async listAvailable(viewerId: number, viewerRole: string, dto: FactQueryDto) {
+    const viewer = await this.users.findById(viewerId);
+    if (!viewer) throw new NotFoundException('Usuário não encontrado.');
+
+    const from = dto.from ? new Date(dto.from) : undefined;
+    const to = dto.to ? new Date(dto.to) : undefined;
+    if (from && to && from > to) {
+      throw new BadRequestException(
+        'A data inicial não pode ser posterior à data final.',
+      );
+    }
+
+    return this.facts.listAvailableForViewer(
+      viewerId,
+      viewerRole,
+      viewer.teamId,
+      {
+        page: dto.page,
+        pageSize: dto.pageSize,
+        relatedUserId: dto.relatedUserId,
+        from,
+        to,
+      },
+    );
+  }
+
+  // The selection validates authorization, availability and the transaction
+  // conflict in one application-level operation.
+  // eslint-disable-next-line max-lines-per-function
+  async selectForSession(
+    actorId: number,
+    actorRole: string,
+    sessionId: number,
+    factIds: number[],
+  ) {
+    if (actorRole !== 'ADMIN_LEADER') {
+      throw new ForbiddenException(
+        'Somente o líder responsável pode selecionar fatos para a sessão.',
+      );
+    }
+
+    const session = await this.sessions.findById(sessionId);
+    if (!session) throw new NotFoundException('Sessão não encontrada.');
+    if (session.process.ownerId !== actorId) {
+      throw new ForbiddenException(
+        'Líderes só podem selecionar fatos nas próprias sessões.',
+      );
+    }
+
+    const actor = await this.users.findById(actorId);
+    if (!actor) throw new NotFoundException('Usuário não encontrado.');
+
+    const facts = await this.facts.findForSelection(
+      factIds,
+      actorId,
+      actorRole,
+      actor.teamId,
+    );
+    if (facts.length !== factIds.length) {
+      throw new BadRequestException(
+        'Um ou mais fatos não estão disponíveis para seleção.',
+      );
+    }
+    if (
+      facts.some(
+        (fact) => fact.sessionId !== null && fact.sessionId !== sessionId,
+      )
+    ) {
+      throw new BadRequestException(
+        'Um ou mais fatos já estão associados a outra sessão.',
+      );
+    }
+
+    try {
+      return await this.facts.selectForSession(sessionId, factIds);
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === 'FACT_SELECTION_CONFLICT'
+      ) {
+        throw new BadRequestException(
+          'Um ou mais fatos deixaram de estar disponíveis para seleção.',
+        );
+      }
+      throw error;
+    }
   }
 
   private validateAttachments(files: FactUpload[]) {

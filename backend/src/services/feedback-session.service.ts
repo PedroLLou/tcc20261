@@ -11,12 +11,15 @@ import {
   DefineFeedbackSessionObjectiveDto,
   DefineFeedbackSessionScheduleDto,
 } from '../dto/feedback-session.dto';
+import { FactQueryDto } from '../dto/fact.dto';
+import { FactService } from './fact.service';
 
 @Injectable()
 export class FeedbackSessionService {
   constructor(
     private readonly sessions: FeedbackSessionRepository,
     private readonly processes: FeedbackProcessRepository,
+    private readonly facts: FactService,
   ) {}
 
   async create(ownerId: number, dto: CreateFeedbackSessionDto) {
@@ -86,5 +89,34 @@ export class FeedbackSessionService {
     }
 
     return this.sessions.update(id, { scheduledAt });
+  }
+
+  async listAvailableFacts(
+    sessionId: number,
+    viewerId: number,
+    viewerRole: string,
+    dto: FactQueryDto,
+  ) {
+    const session = await this.sessions.findById(sessionId);
+    if (!session) throw new NotFoundException('Sessão não encontrada.');
+    if (
+      viewerRole !== 'ADMIN_RH' &&
+      viewerId !== session.process.ownerId &&
+      viewerId !== session.process.participantId
+    ) {
+      throw new ForbiddenException(
+        'Você não pode consultar fatos desta sessão.',
+      );
+    }
+    return this.facts.listAvailable(viewerId, viewerRole, dto);
+  }
+
+  selectFacts(
+    actorId: number,
+    actorRole: string,
+    sessionId: number,
+    factIds: number[],
+  ) {
+    return this.facts.selectForSession(actorId, actorRole, sessionId, factIds);
   }
 }

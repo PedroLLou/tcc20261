@@ -1,0 +1,46 @@
+.fact-session-selection {
+  display: grid;
+  gap: 12px;
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+}
+
+.fact-session-selection h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 16px;
+}
+
+.fact-session-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fact-session-list li {
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+.fact-session-list label {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.fact-session-list span {
+  display: grid;
+  gap: 4px;
+}
+
+.fact-session-list small {
+  color: var(--color-text-muted);
+}

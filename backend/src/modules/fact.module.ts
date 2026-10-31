@@ -10,5 +10,6 @@ import { FeedbackSessionRepository } from '../repositories/feedback-session.repo
   imports: [AuthModule, PrismaModule],
   controllers: [FactController],
   providers: [FactService, FactRepository, FeedbackSessionRepository],
+  exports: [FactService],
 })
 export class FactModule {}

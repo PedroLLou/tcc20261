@@ -6,6 +6,7 @@ import {
 import { FeedbackSessionService } from './feedback-session.service';
 import type { FeedbackSessionRepository } from '../repositories/feedback-session.repository';
 import type { FeedbackProcessRepository } from '../repositories/feedback-process.repository';
+import type { FactService } from './fact.service';
 
 describe('FeedbackSessionService', () => {
   let service: FeedbackSessionService;
@@ -21,6 +22,7 @@ describe('FeedbackSessionService', () => {
     service = new FeedbackSessionService(
       sessions as unknown as FeedbackSessionRepository,
       processes as unknown as FeedbackProcessRepository,
+      {} as FactService,
     );
   });
 

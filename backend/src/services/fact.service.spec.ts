@@ -7,6 +7,7 @@ import { FactService } from './fact.service';
 import type { FactRepository } from '../repositories/fact.repository';
 import type { FeedbackSessionRepository } from '../repositories/feedback-session.repository';
 import type { UserRepository } from '../repositories/user.repository';
+import { FactQueryDto } from '../dto/fact.dto';
 
 // The setup and integration-shaped assertions are kept together for readability.
 // eslint-disable-next-line max-lines-per-function
@@ -204,6 +205,7 @@ describe('FactService - validação', () => {
   });
 });
 
+// eslint-disable-next-line max-lines-per-function
 describe('FactService - acesso aos fatos', () => {
   let service: FactService;
   let facts: {
@@ -223,6 +225,107 @@ describe('FactService - acesso aos fatos', () => {
       {} as FeedbackSessionRepository,
       users as unknown as UserRepository,
     );
+  });
+
+  // eslint-disable-next-line max-lines-per-function
+  describe('FactService - fatos disponíveis e seleção', () => {
+    let service: FactService;
+    let facts: {
+      listAvailableForViewer: jest.Mock;
+      findForSelection: jest.Mock;
+      selectForSession: jest.Mock;
+    };
+    let sessions: { findById: jest.Mock };
+    let users: { findById: jest.Mock };
+
+    beforeEach(() => {
+      facts = {
+        listAvailableForViewer: jest.fn(),
+        findForSelection: jest.fn(),
+        selectForSession: jest.fn(),
+      };
+      sessions = { findById: jest.fn() };
+      users = { findById: jest.fn() };
+      service = new FactService(
+        facts as unknown as FactRepository,
+        sessions as unknown as FeedbackSessionRepository,
+        users as unknown as UserRepository,
+      );
+    });
+
+    it('consulta fatos disponíveis com paginação e escopo do usuário', async () => {
+      users.findById.mockResolvedValue({ id: 3, teamId: 9 });
+      facts.listAvailableForViewer.mockResolvedValue({ items: [], total: 0 });
+
+      const query = Object.assign(new FactQueryDto(), {
+        page: 2,
+        pageSize: 10,
+      });
+
+      await expect(
+        service.listAvailable(3, 'ADMIN_LEADER', query),
+      ).resolves.toEqual({
+        items: [],
+        total: 0,
+      });
+      expect(facts.listAvailableForViewer).toHaveBeenCalledWith(
+        3,
+        'ADMIN_LEADER',
+        9,
+        {
+          page: 2,
+          pageSize: 10,
+          relatedUserId: undefined,
+          from: undefined,
+          to: undefined,
+        },
+      );
+    });
+
+    it('associa fatos válidos à sessão do líder', async () => {
+      sessions.findById.mockResolvedValue({
+        process: { ownerId: 3, participantId: 8 },
+      });
+      users.findById.mockResolvedValue({ id: 3, teamId: 9 });
+      facts.findForSelection.mockResolvedValue([
+        { id: 4, sessionId: null },
+        { id: 5, sessionId: 12 },
+      ]);
+      facts.selectForSession.mockResolvedValue([{ id: 4 }, { id: 5 }]);
+
+      await expect(
+        service.selectForSession(3, 'ADMIN_LEADER', 12, [4, 5]),
+      ).resolves.toEqual([{ id: 4 }, { id: 5 }]);
+      expect(facts.selectForSession).toHaveBeenCalledWith(12, [4, 5]);
+    });
+
+    it('rejeita seleção parcial quando algum fato não está disponível', async () => {
+      sessions.findById.mockResolvedValue({
+        process: { ownerId: 3, participantId: 8 },
+      });
+      users.findById.mockResolvedValue({ id: 3, teamId: 9 });
+      facts.findForSelection.mockResolvedValue([{ id: 4, sessionId: null }]);
+
+      await expect(
+        service.selectForSession(3, 'ADMIN_LEADER', 12, [4, 5]),
+      ).rejects.toThrow(BadRequestException);
+      expect(facts.selectForSession).not.toHaveBeenCalled();
+    });
+
+    it('converte conflito transacional em erro de negócio', async () => {
+      sessions.findById.mockResolvedValue({
+        process: { ownerId: 3, participantId: 8 },
+      });
+      users.findById.mockResolvedValue({ id: 3, teamId: 9 });
+      facts.findForSelection.mockResolvedValue([{ id: 4, sessionId: null }]);
+      facts.selectForSession.mockRejectedValue(
+        new Error('FACT_SELECTION_CONFLICT'),
+      );
+
+      await expect(
+        service.selectForSession(3, 'ADMIN_LEADER', 12, [4]),
+      ).rejects.toThrow(BadRequestException);
+    });
   });
 
   it('lista fatos para o usuário autenticado', async () => {
