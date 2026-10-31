@@ -1,10 +1,12 @@
 import {
   Body,
   Controller,
+  Get,
   Param,
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -18,6 +20,7 @@ import {
   DefineFeedbackSessionScheduleDto,
 } from '../dto/feedback-session.dto';
 import { FeedbackSessionService } from '../services/feedback-session.service';
+import { FactQueryDto, SelectFactsDto } from '../dto/fact.dto';
 
 type AuthenticatedRequest = Request & {
   user: { id: number; role: string };
@@ -66,5 +69,35 @@ export class FeedbackSessionController {
     @Body() dto: DefineFeedbackSessionScheduleDto,
   ) {
     return this.feedbackSessionService.defineSchedule(id, request.user.id, dto);
+  }
+
+  @Get(':id/facts/available')
+  listAvailableFacts(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() request: AuthenticatedRequest,
+    @Query() query: FactQueryDto,
+  ) {
+    return this.feedbackSessionService.listAvailableFacts(
+      id,
+      request.user.id,
+      request.user.role,
+      query,
+    );
+  }
+
+  @Post(':id/facts')
+  @Roles('ADMIN_LEADER')
+  @UseGuards(RolesGuard)
+  selectFacts(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() request: AuthenticatedRequest,
+    @Body() dto: SelectFactsDto,
+  ) {
+    return this.feedbackSessionService.selectFacts(
+      request.user.id,
+      request.user.role,
+      id,
+      dto.factIds,
+    );
   }
 }

@@ -6,9 +6,10 @@ import { FeedbackSessionService } from '../services/feedback-session.service';
 import { PrismaModule } from '../prisma.module';
 import { FeedbackProcessRepository } from '../repositories/feedback-process.repository';
 import { FeedbackSessionRepository } from '../repositories/feedback-session.repository';
+import { FactModule } from './fact.module';
 
 @Module({
-  imports: [AuthModule, PrismaModule],
+  imports: [AuthModule, PrismaModule, FactModule],
   controllers: [FeedbackSessionController],
   providers: [
     FeedbackSessionService,

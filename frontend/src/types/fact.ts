@@ -17,3 +17,10 @@ export interface Fact {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface AvailableFactsPage {
+  items: Fact[];
+  total: number;
+  page: number;
+  pageSize: number;
+}

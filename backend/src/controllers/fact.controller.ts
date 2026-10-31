@@ -5,6 +5,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Query,
   Req,
   Res,
   UploadedFiles,
@@ -16,7 +17,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { CreateFactDto } from '../dto/fact.dto';
+import { CreateFactDto, FactQueryDto } from '../dto/fact.dto';
 import { FactService, FactUpload } from '../services/fact.service';
 
 type AuthenticatedRequest = Request & {
@@ -48,6 +49,18 @@ export class FactController {
   @Get()
   list(@Req() request: AuthenticatedRequest) {
     return this.factService.list(request.user.id, request.user.role);
+  }
+
+  @Get('available')
+  listAvailable(
+    @Req() request: AuthenticatedRequest,
+    @Query() query: FactQueryDto,
+  ) {
+    return this.factService.listAvailable(
+      request.user.id,
+      request.user.role,
+      query,
+    );
   }
 
   @Get(':factId/attachments/:attachmentId')
