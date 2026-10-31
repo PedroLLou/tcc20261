@@ -16,7 +16,7 @@ jobs:
         with:
           node-version: 24
       - name: Container configuration and observability verifier tests
-        run: node --test tests/*.test.mjs scripts/render-helpers.test.mjs
+        run: node --test tests/*.test.mjs scripts/render-helpers.test.mjs scripts/wait-for-ci.test.mjs
 
   test-backend:
     runs-on: ubuntu-latest
